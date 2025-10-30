@@ -2,3 +2,4 @@
 Group project at AAU
 hej med dig
 HEJ
+skriv et eller andet
