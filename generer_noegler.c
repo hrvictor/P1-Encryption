@@ -26,7 +26,7 @@ int main(void) {
     int primeindex = 0;
 
     while (primeindex < 2) {
-        long long int n = rand() % 1000000;      // random number
+        long long int n = rand();      // random number
         if (isPrime(n)) {
             if (primeindex == 0) {
                 p1 = n;
