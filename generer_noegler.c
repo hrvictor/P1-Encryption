@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#define E 65537
+#define E 65537LL
 
 int isPrime(int n) {
     if (n <= 1) return 0;
@@ -15,18 +15,18 @@ int isPrime(int n) {
     }
     return 1;
 }
-int phi(int n);
-int gcd(int num1, int num2);
+long long int phi(long long int n);
+long long int gcd(long long int num1, long long int num2);
 
 int main(void) {
     srand((unsigned int)time(NULL));
     FILE *fptr;
 
-    int p1 = 0, p2 = 0;
+    long long int p1 = 0, p2 = 0;
     int primeindex = 0;
 
     while (primeindex < 2) {
-        int n = rand() % 10000;      // random number
+        long long int n = rand() % 1000000;      // random number
         if (isPrime(n)) {
             if (primeindex == 0) {
                 p1 = n;
@@ -38,22 +38,22 @@ int main(void) {
         }
     }
 
-    printf("Prime nr. 1: %d\n", p1);
-    printf("Prime nr. 2: %d\n", p2);
+    printf("Prime nr. 1: %lld\n", p1);
+    printf("Prime nr. 2: %lld\n", p2);
 
-    int n = p1 * p2;
-    int phi_n = phi(n);
+    long long n = p1 * p2;
+    long long phi_n = phi(n);
 
 
-    printf("n = %d\n", n);
-    printf("phi(n) = %d\n", phi_n);
+    printf("n = %lld\n", n);
+    printf("phi(n) = %lld\n", phi_n);
 
     fptr = fopen("keys.txt", "a");
-    fprintf(fptr, "public key key: (n=%d, e=%d)\nprivate key: (n=%d, d=)", n, E, n);
+    fprintf(fptr, "public key key: (n=%lld, e=%lld)\nprivate key: (n=%lld, d=)", n, E, n);
     fclose(fptr);
 
-    int _gcd = gcd(E, phi_n);
-    printf("gcd (E,phi(n)= %d\n", _gcd);
+    long long int _gcd = gcd(E, phi_n);
+    printf("gcd (e,phi(n)= %lld\n", _gcd);
     if(_gcd != 1){
       printf("Error: Choose new prime numbers\n");
       return 1;
@@ -61,8 +61,8 @@ int main(void) {
 
     return 0;
 }
-int phi(int n){
-    int result = n; // Initialize result as n
+long long int phi(long long int n){
+    long long int result = n; // Initialize result as n
 
     // Iterate through all numbers from 2 up to sqrt(n)
     for (int i = 2; i * i <= n; i++) {
@@ -82,7 +82,7 @@ int phi(int n){
     }
     return result;
 }
-int gcd(int num1, int num2) {
+long long int gcd(long long int num1, long long int num2) {
     // Base case: if the second number is 0, the first number is the GCD
     if (num2 == 0) {
         return num1;
