@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#define E 65537
 
 int isPrime(int n) {
     if (n <= 1) return 0;
@@ -25,7 +26,7 @@ int main(void) {
     int primeindex = 0;
 
     while (primeindex < 2) {
-        int n = rand() % 100000;      // random number
+        int n = rand() % 10000;      // random number
         if (isPrime(n)) {
             if (primeindex == 0) {
                 p1 = n;
@@ -43,18 +44,20 @@ int main(void) {
     int n = p1 * p2;
     int phi_n = phi(n);
 
+
     printf("n = %d\n", n);
     printf("phi(n) = %d\n", phi_n);
 
     fptr = fopen("keys.txt", "a");
-    fprintf(fptr, "%d\n %d", n, phi_n);
+    fprintf(fptr, "public key key: (n=%d, e=%d)\nprivate key: (n=%d, d=)", n, E, n);
     fclose(fptr);
 
-    int _gcd = gcd(65537, (p1-1)*(p2-1));
-    printf("gcd er %d\n", _gcd);
-
-
-
+    int _gcd = gcd(E, phi_n);
+    printf("gcd (E,phi(n)= %d\n", _gcd);
+    if(_gcd != 1){
+      printf("Error: Choose new prime numbers\n");
+      return 1;
+    }
 
     return 0;
 }
