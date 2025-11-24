@@ -95,6 +95,7 @@ void krypter_besked() {
     // Indtast besked klartekst (fra tastatur eller fil)
     // (Læs input)
     // therkel og jeg ve dikke hvad vi laver
+    // HEY 
 
     // Brug eksisterende nøglepar?
     // (Spørg brugeren)
