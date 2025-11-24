@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 // Funktion prototyper
 void generer_noegler();
@@ -92,13 +93,39 @@ void generer_noegler() {
 void krypter_besked() {
     printf("\n--- Starter krypteringsflow ---\n");
 
+    int n = 10000000;
+    char sentence[n];
+    char fname[n];
+    int valg;
+      /*
+      printf("Write the message you wish to have encrypted (or the name a text file)\n");
+      */
+
     // Indtast besked klartekst (fra tastatur eller fil)
+    printf("Do you wish to encrypt from a directly in the terminal or from a file (1 for terminal and 0 for file)\n");
+    scanf("%d", valg);
     // (Læs input)
-    // therkel og jeg ve dikke hvad vi laver
-    // HEY 
+    if(valg = 1){
+        fgets(sentence, n, stdin);
+    } else if(valg = 0){
+        printf("What is the name of the file that to encrypt from?\n");
+        scanf("%s", &fname);
+        FILE *f = fopen(&fname, "r");
+            if(f == NULL){
+                printf("!FAILED TO OPEN THE FILE!\n");
+                exit(EXIT_FAILURE);
+            }
+    } else{
+        printf("!You have given impossible instrucitons!");
+        printf("!FAILED TO OPEN THE FILE!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("her er din saetning:\n %s\n", sentence);
 
     // Brug eksisterende nøglepar?
     // (Spørg brugeren)
+    Printf("Du you wish to use an existing key pair or generate or new one?\n");
     
     // Hvis Ja:
         // Indlæs nøglepar fra nøglefil
