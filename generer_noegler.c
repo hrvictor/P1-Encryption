@@ -49,19 +49,21 @@ int main(void) {
   printf("phi(n) = %lld\n", phi_n);
   printf("d = %lld\n", d);
 
-  fptr = fopen("keys.txt", "a");
-  fprintf(fptr, "public key key: (n=%lld, e=%lld)\nprivate key: (n=%lld, d=%lld)", n, E, n, d);
-  fclose(fptr);
-
   long long int _gcd = gcd(E, phi_n);
-  printf("gcd (e,phi(n)= %lld\n", _gcd);
+  printf("gcd (e,phi(n)= %lld\n\n", _gcd);
     if(_gcd != 1){
       printf("Error: Choose new prime numbers\n");
       return 1;
     }
   
+  //stored in txt file as hex using the llx 
+  fptr = fopen("keys.txt", "a");
+  fprintf(fptr, "public key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)", n, E, n, d);
+  fclose(fptr);
 
-    return 0;
+  printf("This is the keypair saved to your file keys.txt, in hexadeximals:\npublic key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)\n", n, E, n, d);
+
+  return 0;
 }
 int isPrime(int n) {
     if (n <= 1) return 0;
