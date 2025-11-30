@@ -4,6 +4,65 @@
 #include <math.h>
 #define E 65537LL
 
+
+int isPrime(int n);
+long long int phi(long long int n);
+long long int gcd(long long int num1, long long int num2);
+long long int modInverse(long long int a, long long int m);
+long long int extended_gcd(long long int a, long long int b,long long int *x, long long int *y);
+long long int modInverse(long long int a, long long int m);
+
+int main(void) {
+  srand((unsigned int)time(NULL));
+  FILE *fptr;
+
+  long long int p1 = 0, p2 = 0;
+  int primeindex = 0;
+
+  while (primeindex < 2) {
+    long long int n = rand();      // random number
+      if (isPrime(n)) {
+        if (primeindex == 0) {
+          p1 = n;
+        }
+        else {
+          p2 = n;
+        }
+          primeindex++;
+      }
+    }
+
+  printf("Prime nr. 1: %lld\n", p1);
+  printf("Prime nr. 2: %lld\n", p2);
+
+  long long n = p1 * p2;
+  long long phi_n = phi(n);
+  // Compute d
+  long long int d = modInverse(E, phi_n);
+    if (d == -1) {
+      printf("Error: modular inverse does not exist\n");
+      return 1;
+    }
+
+
+  printf("n = %lld\n", n);
+  printf("phi(n) = %lld\n", phi_n);
+  printf("d = %lld\n", d);
+
+  fptr = fopen("keys.txt", "a");
+  fprintf(fptr, "public key key: (n=%lld, e=%lld)\nprivate key: (n=%lld, d=%lld)", n, E, n, d);
+  fclose(fptr);
+
+  long long int _gcd = gcd(E, phi_n);
+  printf("gcd (e,phi(n)= %lld\n", _gcd);
+    if(_gcd != 1){
+      printf("Error: Choose new prime numbers\n");
+      return 1;
+    }
+  
+
+    return 0;
+}
 int isPrime(int n) {
     if (n <= 1) return 0;
     if (n == 2) return 1;
@@ -15,53 +74,7 @@ int isPrime(int n) {
     }
     return 1;
 }
-long long int phi(long long int n);
-long long int gcd(long long int num1, long long int num2);
-
-int main(void) {
-    srand((unsigned int)time(NULL));
-    FILE *fptr;
-
-    long long int p1 = 0, p2 = 0;
-    int primeindex = 0;
-
-    while (primeindex < 2) {
-        long long int n = rand();      // random number
-        if (isPrime(n)) {
-            if (primeindex == 0) {
-                p1 = n;
-            }
-            else {
-                p2 = n;
-            }
-            primeindex++;
-        }
-    }
-
-    printf("Prime nr. 1: %lld\n", p1);
-    printf("Prime nr. 2: %lld\n", p2);
-
-    long long n = p1 * p2;
-    long long phi_n = phi(n);
-
-
-    printf("n = %lld\n", n);
-    printf("phi(n) = %lld\n", phi_n);
-
-    fptr = fopen("keys.txt", "a");
-    fprintf(fptr, "public key key: (n=%lld, e=%lld)\nprivate key: (n=%lld, d=)", n, E, n);
-    fclose(fptr);
-
-    long long int _gcd = gcd(E, phi_n);
-    printf("gcd (e,phi(n)= %lld\n", _gcd);
-    if(_gcd != 1){
-      printf("Error: Choose new prime numbers\n");
-      return 1;
-    }
-
-    return 0;
-}
-long long int phi(long long int n){
+  long long int phi(long long int n){
     long long int result = n; // Initialize result as n
 
     // Iterate through all numbers from 2 up to sqrt(n)
@@ -90,3 +103,42 @@ long long int gcd(long long int num1, long long int num2) {
     // Recursive call with the second number and the remainder of num1 divided by num2
     return gcd(num2, num1 % num2);
 }
+// --------------------- extended_gcd ---------------------
+// Extended Euclidean Algorithm.
+// For given a and b, it computes:
+//  - g = gcd(a, b)
+//  - x and y such that: a*x + b*y = g
+// x and y are "output parameters" returned through the pointers *x and *y.
+long long int extended_gcd(long long int a, long long int b,long long int *x, long long int *y){
+    if (b == 0){
+        *x = 1;
+        *y = 0;
+        return a;
+    }
+    long long int x1, y1;
+    long long int g = extended_gcd(b, a % b, &x1, &y1);
+    *x = y1;
+    *y = x1 - (a / b) * y1;
+
+    return g;
+}
+// --------------------- modInverse ---------------------
+// Computes the modular inverse of a modulo m.
+// That is, finds x such that: a*x ≡ 1 (mod m).
+// Uses the extended Euclidean algorithm.
+// Returns the modular inverse if it exists, otherwise returns -1.
+long long int modInverse(long long int a, long long int m){
+    long long int x, y;
+    long long int g = extended_gcd(a, m, &x, &y);
+
+    if (g != 1) {
+        // inverse does not exist
+        return -1;
+    }
+
+    // x might be negative, so make it positive modulo m
+    long long int res = x % m;
+    if (res < 0) res += m;
+    return res;
+}
+
