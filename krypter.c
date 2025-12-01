@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-
+//Terker er klam
 #define buffer 250
 
 int konverter(const char *sentence, int *sentence_enc);
