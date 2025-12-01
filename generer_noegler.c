@@ -11,6 +11,9 @@ long long int gcd(long long int num1, long long int num2);
 long long int modInverse(long long int a, long long int m);
 long long int extended_gcd(long long int a, long long int b,long long int *x, long long int *y);
 long long int modInverse(long long int a, long long int m);
+long long int modExp(long long int base, long long int exp, long long int mod);
+long long int encrypt_char(unsigned char m, long long int n, long long int e);
+unsigned char decrypt_char(long long int c, long long int n, long long int d);
 
 int main(void) {
   srand((unsigned int)time(NULL));
@@ -20,7 +23,7 @@ int main(void) {
   int primeindex = 0;
 
   while (primeindex < 2) {
-    long long int n = rand();      // random number
+    long long int n = rand()%100000;      // random number
       if (isPrime(n)) {
         if (primeindex == 0) {
           p1 = n;
@@ -61,7 +64,53 @@ int main(void) {
   fprintf(fptr, "public key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)", n, E, n, d);
   fclose(fptr);
 
-  printf("This is the keypair saved to your file keys.txt, in hexadeximals:\npublic key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)\n", n, E, n, d);
+  printf("This is the keypair saved to your file keys.txt, in hexadecimals:\npublic key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)\n", n, E, n, d);
+
+/*This part of the program with encryption and decryption works for a message up to 256 characters written in terminal
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv*/
+  char message[256];
+
+  printf("\nEnter a message to encrypt: ");
+
+
+  // Read the line
+  if (fgets(message, sizeof(message), stdin) == NULL) {
+   int len = 0;
+   while (message[len] != '\0') {
+     if (message[len] == '\n') {   // remove newline from fgets
+        message[len] = '\0';
+        break;
+      }
+     len++;
+ }
+    printf("Error reading message.\n");
+    return 1;
+ }
+
+  long long int ciphertext[256];
+  int clen = 0;
+
+  for (int i = 0; message[i] != '\0'; i++) {
+    unsigned char m = (unsigned char)message[i];
+    long long int c = encrypt_char(m, n, E);
+    ciphertext[clen++] = c;
+  }
+  printf("\nCiphertext numbers:\n");
+  for (int i = 0; i < clen; i++) {
+    printf("%lld ", ciphertext[i]);
+  }
+  printf("\n");
+
+  char decrypted[256];
+
+  for (int i = 0; i < clen; i++) {
+    decrypted[i] = (char)decrypt_char(ciphertext[i], n, d);
+  }
+  decrypted[clen] = '\0';
+
+  printf("Decrypted message: %s\n", decrypted);
+/*^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This part of the program with encryption and decryption works for a message up to 256 characters written in terminal*/
 
   return 0;
 }
@@ -124,11 +173,11 @@ long long int extended_gcd(long long int a, long long int b,long long int *x, lo
 
     return g;
 }
-// --------------------- modInverse ---------------------
-// Computes the modular inverse of a modulo m.
-// That is, finds x such that: a*x ≡ 1 (mod m).
-// Uses the extended Euclidean algorithm.
-// Returns the modular inverse if it exists, otherwise returns -1.
+
+/* Computes the modular inverse of a modulo m.
+That is, finds x such that: a*x ≡ 1 (mod m).
+Uses the extended Euclidean algorithm.
+Returns the modular inverse if it exists, otherwise returns -1.*/
 long long int modInverse(long long int a, long long int m){
     long long int x, y;
     long long int g = extended_gcd(a, m, &x, &y);
@@ -143,4 +192,32 @@ long long int modInverse(long long int a, long long int m){
     if (res < 0) res += m;
     return res;
 }
+long long int modExp(long long int base, long long int exp, long long int mod) {
+    long long int result = 1 % mod;
 
+    base = base % mod;
+
+    while (exp > 0) {
+        // If the current bit of exp is 1, multiply result by base (mod mod)
+        if (exp & 1) {
+          result = (result * base) % mod;
+        }
+
+        base = base * base % mod; 
+
+        // Shift exponent right by 1 bit (divide by 2)
+        exp = exp / 2; 
+    }
+
+    return result;
+}
+// Encrypt a single byte (character)
+long long int encrypt_char(unsigned char m, long long int n, long long int e) {
+  return modExp(m, e, n);
+}
+
+// Decrypt a single ciphertext value
+unsigned char decrypt_char(long long int c, long long int n, long long int d) {
+  long long int m = modExp(c, d, n);
+    return (unsigned char)m;
+}
