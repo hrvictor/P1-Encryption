@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+
+#define buffer 250
+
 // Funktion prototyper
 void generer_noegler();
 void krypter_besked();
@@ -93,39 +96,39 @@ void generer_noegler() {
 void krypter_besked() {
     printf("\n--- Starter krypteringsflow ---\n");
 
-    int n = 10000000;
-    char sentence[n];
-    char fname[n];
+    char sentence[buffer];
+    char fname[buffer];
     int valg;
-      /*
-      printf("Write the message you wish to have encrypted (or the name a text file)\n");
-      */
 
     // Indtast besked klartekst (fra tastatur eller fil)
     printf("Do you wish to encrypt from a directly in the terminal or from a file (1 for terminal and 0 for file)\n");
-    scanf("%d", valg);
+    scanf("%d", &valg);
+    getchar();
+
     // (Læs input)
-    if(valg = 1){
-        fgets(sentence, n, stdin);
-    } else if(valg = 0){
+    if(valg == 1){
+        printf("Type the sentence that you wish to have encrypted:\n");
+        fgets(sentence, buffer, stdin);
+    } else if(valg == 0){
         printf("What is the name of the file that to encrypt from?\n");
         scanf("%s", &fname);
-        FILE *f = fopen(&fname, "r");
+        FILE *f = fopen(fname, "r");
             if(f == NULL){
                 printf("!FAILED TO OPEN THE FILE!\n");
                 exit(EXIT_FAILURE);
             }
+            fgets(sentence, buffer, f);
+            fclose(f);
     } else{
-        printf("!You have given impossible instrucitons!");
-        printf("!FAILED TO OPEN THE FILE!\n");
+        printf("!You have given impossible Instructions!\n");
         exit(EXIT_FAILURE);
     }
 
-    printf("her er din saetning:\n %s\n", sentence);
+    printf("\n\nher er din saetning:\n %s\n", sentence); //den er linje er der kun for at tæste input -Therkel
 
     // Brug eksisterende nøglepar?
     // (Spørg brugeren)
-    Printf("Du you wish to use an existing key pair or generate or new one?\n");
+    printf("Du you wish to use an existing key pair or generate or new one?\n");
     
     // Hvis Ja:
         // Indlæs nøglepar fra nøglefil
@@ -149,6 +152,7 @@ void krypter_besked() {
 
     printf("Retur til hovedmenu.\n");
 }
+
 
 void dekrypter_besked() {
     printf("\n--- Starter dekrypteringsflow ---\n");
