@@ -14,9 +14,12 @@
 long long int modExp(long long int base, long long int exp, long long int mod);
 
 /*
-   Top-down funktioner til dekrypterings-flowet.
-   Dette er "skelettet" af programmet.
+WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! 
+Jeg er lidt gone i hovedet så ingen spårgsmål, jeg skriver på dansk og engelsk depending on what i feel like lol
 */
+
+
+//Prototyper
 void laes_privat_noegle(long long int *n, long long int *d);
 int laes_krypteret_input(long long int *ciphertext, int max_blocks);
 void dekrypter_data(long long int *ciphertext, int num_blocks, long long int n, long long int d, char *decrypted_message);
@@ -43,11 +46,11 @@ int main(void) {
     printf("Noegle indlaest: n=%lld, d=%lld\n", n, d);
 
     // Trin 2: Læs den krypterede besked (chiffertekst)
-    // Dette kunne være fra en fil eller brugerinput
+    // Dette kunne være fra en fil eller brugerinput, har dog ikke implementeret så man kan skrive direkte i terminalen.
     num_blocks = laes_krypteret_input(ciphertext, MAX_TEXT_LENGTH);
 
     // Trin 3: Udfør selve dekrypteringen
-    // Konverterer de store tal (ciphertext) tilbage til tekst
+    // Konverterer de store tal (ciphertext) tilbage til tekst 
     dekrypter_data(ciphertext, num_blocks, n, d, decrypted_message);
 
     // Trin 4: Vis resultatet til brugeren
@@ -57,7 +60,8 @@ int main(void) {
 }
 
 void laes_privat_noegle(long long int *n, long long int *d) {
-    // Åbn filen "keys.txt" og find den private nøgle
+    // Åbn filen "keys.txt" og find den private nøgle, kan godt bruge forbedringer siden at den kan lave fejl hvis man har flere nøgler i filen.
+    // Så der skal laves en catch all til at fange hvis der er mere end et pair.
 
     FILE *f2;
     f2 = fopen("keys.txt", "r");
@@ -68,7 +72,7 @@ void laes_privat_noegle(long long int *n, long long int *d) {
         char line[256];
         while (fgets(line, sizeof(line), f2) != NULL) {
             if (strstr(line, "private key") != NULL) {
-                // Note: This finds the first private key. 
+                // Find den private nøgle
                 // Since the file format might have multiple keys, this logic might need adjustment later.
                 char *start = strstr(line, "private key");
                 sscanf(start, "private key: (n=%llx, d=%llx)", n, d);
@@ -94,7 +98,7 @@ int laes_krypteret_input(long long int *ciphertext, int max_blocks) {
     }
 
     int i = 0;
-    // Read integers from the file until we hit the max or end of file
+    // Læs heltal fra filen ind i ciphertext arrayet.
     while (i < max_blocks && fscanf(f1, "%lld", &ciphertext[i]) == 1) {
         i++;
     }
@@ -105,14 +109,14 @@ int laes_krypteret_input(long long int *ciphertext, int max_blocks) {
 
 void dekrypter_data(long long int *ciphertext, int num_blocks, long long int n, long long int d, char *decrypted_message) {
     // Loop igennem hver blok og dekrypter med RSA formlen m = c^d mod n
-    // Pak derefter de to karakterer ud fra heltallet m
+    // Derefter de to karakterer ud fra heltallet m
     
     int char_index = 0;
     for(int i = 0; i < num_blocks; i++){
         long long int m = modExp(ciphertext[i], d, n);
         
         // Unpack 2 characters from the integer (reverse order of packing)
-        // Packing was: m = char1 * 256 + char2
+        // m = char1 * 256 + char2
         // So char2 is m % 256, and char1 is m / 256
         
         char c2 = (char)(m % 256);
@@ -121,7 +125,7 @@ void dekrypter_data(long long int *ciphertext, int num_blocks, long long int n, 
         decrypted_message[char_index++] = c1;
         decrypted_message[char_index++] = c2;
     }
-    // Null-terminate the string so printf knows where it ends
+    // Null-terminate the string so printf knows where it ends, took me legit 30 min to figure this shit out :) fuck C
     decrypted_message[char_index] = '\0';
 }
 
@@ -130,7 +134,7 @@ void udskriv_besked(char *message) {
     printf("\nDecrypted message:\n%s\n", message);
 }
 
-/* Matematiske funktioner */
+/* Matematiske YAPP Kopieret fra generer_noegler.c*/
 
 long long int modExp(long long int base, long long int exp, long long int mod) {
     long long int result = 1 % mod;
