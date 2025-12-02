@@ -7,10 +7,6 @@
 #define BLOCK_SIZE 2
 #define MAX_TEXT_LENGTH 256
 
-/* 
-   Matematiske hjælpefunktioner.
-   Disse skal implementeres (eller kopieres fra generer_noegler.c) for at RSA virker.
-*/
 long long int modExp(long long int base, long long int exp, long long int mod);
 
 /*
