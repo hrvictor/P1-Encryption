@@ -3,6 +3,7 @@
 #include <time.h>
 #include <math.h>
 #define E 65537LL
+#define BLOCK_SIZE 2
 
 
 int isPrime(int n);
@@ -23,7 +24,7 @@ int main(void) {
   int primeindex = 0;
 
   while (primeindex < 2) {
-    long long int n = rand()%100000;      // random number
+    long long int n = rand()%10000;      // random number
       if (isPrime(n)) {
         if (primeindex == 0) {
           p1 = n;
@@ -68,47 +69,73 @@ int main(void) {
 
 /*This part of the program with encryption and decryption works for a message up to 256 characters written in terminal
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv*/
-  char message[256];
+    char message[256];
 
-  printf("\nEnter a message to encrypt: ");
+    printf("\nEnter a message to encrypt: ");
 
+    // Read the line
+    if (fgets(message, sizeof(message), stdin) == NULL) {
+        printf("Error reading message.\n");
+        return 1;
+    }
 
-  // Read the line
-  if (fgets(message, sizeof(message), stdin) == NULL) {
-   int len = 0;
-   while (message[len] != '\0') {
-     if (message[len] == '\n') {   // remove newline from fgets
+    // Remove trailing newline from fgets, if present, and get length
+    int len = 0;
+    while (message[len] != '\0') {
+        if (message[len] == '\n') {
+            message[len] = '\0';
+            break;
+        }
+        len++;
+    }
+
+    // If message length is odd, pad with '\0' so we always have full blocks
+    if (len % BLOCK_SIZE != 0) {
         message[len] = '\0';
-        break;
-      }
-     len++;
- }
-    printf("Error reading message.\n");
-    return 1;
- }
+        len++;
+    }
 
-  long long int ciphertext[256];
-  int clen = 0;
+    int numBlocks = len / BLOCK_SIZE;
+    long long int ciphertext[256];   // enough space (256 chars / 2 = 128 blocks max)
 
-  for (int i = 0; message[i] != '\0'; i++) {
-    unsigned char m = (unsigned char)message[i];
-    long long int c = encrypt_char(m, n, E);
-    ciphertext[clen++] = c;
-  }
-  printf("\nCiphertext numbers:\n");
-  for (int i = 0; i < clen; i++) {
-    printf("%lld ", ciphertext[i]);
-  }
-  printf("\n");
+    // Encrypt in blocks of 2 characters
+    for (int b = 0; b < numBlocks; b++) {
+        long long int m = 0;
 
-  char decrypted[256];
+        // Pack 2 characters into one integer
+        for (int j = 0; j < BLOCK_SIZE; j++) {
+            unsigned char ch = (unsigned char)message[b * BLOCK_SIZE + j];
+            m = m * 256 + ch;
+        }
 
-  for (int i = 0; i < clen; i++) {
-    decrypted[i] = (char)decrypt_char(ciphertext[i], n, d);
-  }
-  decrypted[clen] = '\0';
+        ciphertext[b] = modExp(m, E, n);
+    }
 
-  printf("Decrypted message: %s\n", decrypted);
+    printf("\nCiphertext blocks:\n");
+    for (int b = 0; b < numBlocks; b++) {
+        printf("%lld", ciphertext[b]);
+    }
+    printf("\n");
+
+    // Decrypt blocks back into characters
+    char decrypted[256];
+
+    for (int b = 0; b < numBlocks; b++) {
+        long long int m = modExp(ciphertext[b], d, n);
+
+        // Unpack 2 characters from the integer (reverse order)
+        for (int j = BLOCK_SIZE - 1; j >= 0; j--) {
+            decrypted[b * BLOCK_SIZE + j] = (char)(m % 256);
+            m /= 256;
+        }
+    }
+
+    // Terminate string at original logical length (len already includes padding if any)
+    decrypted[len] = '\0';
+
+    printf("\n=== RSA BLOCK STRING TEST ===\n");
+    printf("Original : %s\n", message);
+    printf("Decrypted: %s\n", decrypted);
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 This part of the program with encryption and decryption works for a message up to 256 characters written in terminal*/
 
