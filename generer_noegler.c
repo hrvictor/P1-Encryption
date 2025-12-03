@@ -24,7 +24,7 @@ int main(void) {
   int primeindex = 0;
 
   while (primeindex < 2) {
-    long long int n = rand()%10000;      // random number
+    long long int n = rand()%100000;      // random number
       if (isPrime(n)) {
         if (primeindex == 0) {
           p1 = n;
@@ -113,7 +113,7 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
     printf("\nCiphertext blocks:\n");
     for (int b = 0; b < numBlocks; b++) {
-        printf("%lld", ciphertext[b]);
+        printf("%lld ", ciphertext[b]);
     }
     printf("\n");
 
