@@ -3,6 +3,13 @@
 #include <math.h>
 #include <string.h>
 
+// Platform-specific headers for the 'sleep' function
+#ifdef _WIN32 // This macro is automatically defined by Windows compilers (like MinGW/MSVC)
+    #include <windows.h>
+#else // For Linux/macOS (POSIX systems)
+    #include <unistd.h>
+#endif
+
 // Konstanter
 #define BLOCK_SIZE 2
 #define MAX_TEXT_LENGTH 256
@@ -20,6 +27,7 @@ void laes_privat_noegle(long long int *n, long long int *d);
 int laes_krypteret_input(long long int *ciphertext, int max_blocks);
 void dekrypter_data(long long int *ciphertext, int num_blocks, long long int n, long long int d, char *decrypted_message);
 void udskriv_besked(char *message);
+void save_message(char *message);
 
 int main(void) {
     // Variabler til at gemme nøgler og data
@@ -28,18 +36,19 @@ int main(void) {
     char decrypted_message[MAX_TEXT_LENGTH];
     int num_blocks = 0;
 
-    printf("P1 Dekrypterings Program\n");
+    printf("\033[36m P1 Dekrypterings Program\n\n\033[0m");
+    sleep(1);
 
     // Trin 1: Hent den private nøgle (n, d)
     // Vi skal bruge 'd' og 'n' for at dekryptere: m = c^d mod n
     laes_privat_noegle(&n, &d);
-    
+    sleep(1);
     // Tjek om nøgler blev indlæst korrekt
     if (n == 0 || d == 0) {
         printf("Fejl: Kunne ikke indlaese noegler.\n");
         return 1;
     }
-    printf("Noegle indlaest: n=%lld, d=%lld\n", n, d);
+    printf("Noegle indlaest: n=\033[32m%lld\033[0m, d=\033[34m%lld\033[0m\n\n", n, d);
 
     // Trin 2: Læs den krypterede besked (chiffertekst)
     // Dette kunne være fra en fil eller brugerinput, har dog ikke implementeret så man kan skrive direkte i terminalen.
@@ -51,6 +60,10 @@ int main(void) {
 
     // Trin 4: Vis resultatet til brugeren
     udskriv_besked(decrypted_message);
+
+    sleep(3);
+
+    save_message(decrypted_message);
 
     return 0;
 }
@@ -161,6 +174,63 @@ void udskriv_besked(char *message) {
     printf("\nDecrypted message:\n%s\n", message);
 }
 
+void save_message(char *message){
+
+    int i = 0;
+
+    while (i == 0){
+
+    char fname_a[256];
+    int choice;
+
+    printf("\n\n\nDo you want to save the message as a .txt file?\n");
+    printf("0. No\n");
+    printf("1. Yes save as a .txt\n");
+    sleep(1);
+    printf("\nEnter your choice: ");
+
+        // Læs brugerens valg
+        if (scanf("%d", &choice) != 1) {
+            // Håndter ugyldigt input (f.eks. bogstaver)
+            while (getchar() != '\n'); // Ryd input buffer
+            choice = 0; // Sæt til ugyldig værdi
+        }
+
+    switch (choice)
+    {
+    case 1:
+           printf("\nWhat would you like the file to be called?\n");
+           scanf("%s", fname_a);
+           
+           if (strstr(fname_a, ".txt") != NULL) {
+                    printf("\nFile saved as %s\n", fname_a);
+                } else {
+                    strcat(fname_a, ".txt");
+                    printf("\nFile saved as %s\n", fname_a);
+                }
+
+           FILE *f3 = fopen(fname_a, "w");
+           if(f3 == NULL){
+            printf("!FAILED TO OPEN THE FILE!\n");
+            exit(EXIT_FAILURE);
+           }
+           fprintf(f3, "%s", message);
+           fclose(f3);
+           i = 1;
+           printf("\nFile saved as %s\n", fname_a);
+            break;
+    case 0:
+           i = 1;
+           break;
+            
+    default:
+    printf("Invalid choice. Please try again.\n");
+        break;
+    }
+    }
+
+}
+
 /* Matematiske YAPP Kopieret fra generer_noegler.c*/
 
 long long int modExp(long long int base, long long int exp, long long int mod) {
@@ -182,3 +252,5 @@ long long int modExp(long long int base, long long int exp, long long int mod) {
 
     return result;
 }
+
+
