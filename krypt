@@ -9,7 +9,7 @@
 #define BLOCK_SIZE 2
 
 // Helper function for RSA math to prevent overflow
-long long modExp(long long base, long long exp, long long mod){
+long long modExp2(long long base, long long exp, long long mod){
     long long result = 1;
     base = base % mod;
     while (exp > 0) {
@@ -23,7 +23,7 @@ long long modExp(long long base, long long exp, long long mod){
 int konverter(const char *sentence, int *sentence_enc);
 long long merge(int *sentence_enc, int start_index, int sen_len);
 void get_sentence(int valg_a, char *sentence, char *fname_a);
-void encrypt(char *sentence, long long int key, long long exp);
+void encrypt(char *sentence, long long int key, long long exp, int len);
 
 int main(void){
 
@@ -81,7 +81,7 @@ int main(void){
 
 // Konverter besked til heltalsrepræsentation
 // (Konverter karakterer til numeriske værdier)', vi bruger bare "ASCII"
-    sen_len = konverter(sentence, sentence_enc); //<--- fuck det her er sutter >:^(
+    /*sen_len = konverter(sentence, sentence_enc); //<--- fuck det her er sutter >:^(*/
 
     printf("den oprindelige tekst: '%s'\n", sentence);
     printf("antal tegn gemt: %d\n", sen_len);
@@ -96,7 +96,7 @@ int main(void){
             /*printf("den samlede tal raekke: %lld\n", merged_sentence_enc);*/
 // Krypter med RSA: cipher = besked^e mod n
     /*sentence_enc[] = (sentence_values[] * n.key);*/ 
-    encrypt(sentence, key, exp);
+    encrypt(sentence, key, exp, len);
 
     /*for(int i = 0; i <= sen_len; i++){
     
@@ -151,13 +151,13 @@ void get_sentence(int valg_a, char *sentence, char *fname_a){
             fgets(sentence, buffer, stdin);
             sentence[strcspn(sentence, "\n")] = 0;
         } else if(valg_a == 0){
+            printf("What is the name of the file that to encrypt from?\n");
+            scanf("%s", &fname_a);
             FILE *f1 = fopen(fname_a, "r");
                 if(f1 == NULL){
                 printf("!FAILED TO OPEN THE FILE!\n");
                 exit(EXIT_FAILURE);
             }
-            printf("What is the name of the file that to encrypt from?\n");
-            scanf("%s", &fname_a);
             fgets(sentence, buffer, f1);
             fclose(f1);       
         } else{
@@ -166,11 +166,8 @@ void get_sentence(int valg_a, char *sentence, char *fname_a){
         }
 }
 
-void encrypt(char *sentence, long long int key, long long exp){
- // --- ENCRYPTION SECTION ---
-    // We must encrypt in blocks to match the decryption logic
-    int len = strlen(sentence);
-    
+void encrypt(char *sentence, long long int key, long long exp, int len){
+ // --- ENCRYPTION SECTION ---    
     // Pad with nulls if needed
     if(len % BLOCK_SIZE != 0){
         sentence[len] = '\0';
@@ -197,7 +194,7 @@ void encrypt(char *sentence, long long int key, long long exp){
             m = m * 256 + ch;
         }
         
-        long long int c = modExp(m, exp, key);
+        long long int c = modExp2(m, exp, key);
         ciphertext[b] = c;
         
         printf("%lld ", c);
