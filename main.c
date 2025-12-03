@@ -8,6 +8,13 @@
 #include "Encryption.c"
 #include "generer_noegler.c"
 
+// Platform-specific headers for the 'sleep' function
+#ifdef _WIN32 // This macro is automatically defined by Windows compilers (like MinGW/MSVC)
+    #include <windows.h>
+#else // For Linux/macOS (POSIX systems)
+    #include <unistd.h>
+#endif
+
 #define buffer 250
 #define BLOCK_SIZE 2
 
@@ -23,6 +30,9 @@ unsigned long long key;                  // RSA modulus n
 const long long public_exp = 0x10001LL;  // RSA public exponent e = 65537
 
 int main(void) {
+
+    printf("\033[36m\nP1 Krypterings Program\n\n\033[0m");
+    sleep(1);
 
     printf("Do you wish to encrypt a message or do you wish to decrypt. 1 = encryption, 2 = decryption \n");
     scanf("%d",  &encryptordecrypt);
