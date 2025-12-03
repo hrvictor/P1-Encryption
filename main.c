@@ -8,99 +8,88 @@
 #include "Encryption.c"
 #include "generer_noegler.c"
 
-
 #define buffer 250
 #define BLOCK_SIZE 2
 
-void keyselection(int valg_a, int valg_b);
-void sentenceinput();
-void menuselection();
+void keyselection(void);
+void sentenceinput(void);
+void menuselection(void);
 
 char sentence[buffer];
 char fname_a[buffer], fname_b[buffer];
 int valg_a, valg_b;
 int encryptordecrypt;
-int key;
+unsigned long long key;                  // RSA modulus n
+const long long public_exp = 0x10001LL;  // RSA public exponent e = 65537
 
 int main(void) {
 
     printf("Do you wish to encrypt a message or do you wish to decrypt. 1 = encryption, 2 = decryption \n");
     scanf("%d",  &encryptordecrypt);
-    menuselection();
-   
-    // --- ENCRYPTION SECTION ---
-    // We must encrypt in blocks to match the decryption logic
-    int len = strlen(sentence);
+    getchar(); // consume newline
 
-    // Pad with nulls if needed
-    if (len % BLOCK_SIZE != 0) {
-        sentence[len] = '\0';
-        len++;
-    }
+    if (encryptordecrypt == 1) {
+        // Encryption flow
+        menuselection();  // gets valg_a, key, and sentence
 
-    int numBlocks = len / BLOCK_SIZE;
-    long long int ciphertext[256];
-    printf("Encrypted blocks: ");
+        // --- ENCRYPTION SECTION ---
+        int len = (int)strlen(sentence);
 
-    FILE* f3 = fopen("crypted.txt", "w"); // Use "w" to overwrite/start fresh
-    if (f3 == NULL) {
-        printf("Filen kunne ikke aabnes\n");
-        exit(EXIT_FAILURE);
-    }
-
-    for (int b = 0; b < numBlocks; b++) {
-        long long int m = 0;
-        // Pack characters into one integer
-        for (int j = 0; j < BLOCK_SIZE; j++) {
-            unsigned char ch = (unsigned char)sentence[b * BLOCK_SIZE + j];
-            m = m * 256 + ch;
+        // Pad with nulls if needed so we always have complete 2-byte blocks
+        if (len % BLOCK_SIZE != 0) {
+            sentence[len] = '\0';
+            len++;
         }
 
-        long long int c = modExp(m, exp, key);
-        ciphertext[b] = c;
+        int numBlocks = len / BLOCK_SIZE;
+        printf("Encrypted blocks: ");
 
-        printf("%lld ", c);
-        fprintf(f3, "%lld ", c); // Write space-separated blocks
+        FILE* f3 = fopen("crypted.txt", "w"); // Use "w" to overwrite/start fresh
+        if (f3 == NULL) {
+            printf("Filen kunne ikke aabnes\n");
+            exit(EXIT_FAILURE);
+        }
+
+        for (int b = 0; b < numBlocks; b++) {
+            long long int m = 0;
+            // Pack characters into one integer
+            for (int j = 0; j < BLOCK_SIZE; j++) {
+                unsigned char ch = (unsigned char)sentence[b * BLOCK_SIZE + j];
+                m = m * 256 + ch;
+            }
+
+            long long int c = modExp(m, public_exp, (long long)key);
+            printf("%lld ", c);
+            fprintf(f3, "%lld ", c); // Write space-separated blocks
+        }
+        printf("\n");
+
+        fclose(f3);
+        printf("Your encrypted message is located in the text file 'crypted.txt'\n");
     }
-    printf("\n");
-
-    fclose(f3);
-    printf("Your encrypted message is located in the text file 'crypted.txt'\n");
+    else if (encryptordecrypt == 2) {
+        // Decryption flow
+        decryption();
+    }
+    else {
+        printf("fejl input!\n");
+    }
 
     printf("Retur til hovedmenu.\n");
     return 0;
-
-
-
 }
 
-
-void menuselection()
+void menuselection(void)
 {
-    if (encryptordecrypt == 1)
-    {
-        printf("\n--- Starter krypteringsflow ---\n");
+    printf("\n--- Starter krypteringsflow ---\n");
 
-        // --- INPUT SECTION ---
-        printf("Do you wish to encrypt from a directly in the terminal or from a file (1 for terminal and 0 for file) \n");
-        scanf("%d", &valg_a);
-        getchar(); // Consume newline
+    // --- INPUT SECTION ---
+    printf("Do you wish to encrypt from a directly in the terminal or from a file (1 for terminal and 0 for file) \n");
+    scanf("%d", &valg_a);
+    getchar(); // Consume newline
 
-        keyselection(valg_a, valg_b);
-
-    }
-
-    else if (encryptordecrypt == 2)
-    {
-        decryption();
-    }
-
-    else
-    {
-        printf("fejl input!\n");
-    }
+    keyselection();
 }
-
 
 void keyselection(void)
 {
@@ -157,7 +146,8 @@ void keyselection(void)
             exit(EXIT_FAILURE);
         }
 
-        printf("Here is your keypair: '%lld' (hex: %llx)\n", (long long)key, (unsigned long long)key);
+        printf("Here is your keypair: '%lld' (hex: %llx)\n",
+               (long long)key, (unsigned long long)key);
         sentenceinput();
     }
     else if (valg_b == 0) {
@@ -199,7 +189,8 @@ void keyselection(void)
             exit(EXIT_FAILURE);
         }
 
-        printf("Here is your keypair: '%lld' (hex: %llx)\n", (long long)key, (unsigned long long)key);
+        printf("Here is your keypair: '%lld' (hex: %llx)\n",
+               (long long)key, (unsigned long long)key);
         sentenceinput();
     }
     else {
@@ -207,9 +198,6 @@ void keyselection(void)
         exit(EXIT_FAILURE);
     }
 }
-
-
-
 
 void sentenceinput(void)
 {
@@ -239,4 +227,3 @@ void sentenceinput(void)
 
     printf("\n\nher er din saetning:\n %s\n", sentence);
 }
-
