@@ -4,7 +4,9 @@
 #include <ctype.h>
 #include <string.h>
 #include <time.h>
-
+#include "decryption.c"
+#include "Encryption.c"
+#include "generer_noegler.c"
 
 
 #define buffer 250
@@ -237,3 +239,4 @@ void sentenceinput(void)
 
     printf("\n\nher er din saetning:\n %s\n", sentence);
 }
+
