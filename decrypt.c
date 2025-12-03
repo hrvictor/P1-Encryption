@@ -36,7 +36,7 @@ int main(void) {
     char decrypted_message[MAX_TEXT_LENGTH];
     int num_blocks = 0;
 
-    printf("P1 Dekrypterings Program\n\n");
+    printf("\033[36m P1 Dekrypterings Program\n\n\033[0m");
     sleep(1);
 
     // Trin 1: Hent den private nøgle (n, d)
@@ -48,7 +48,7 @@ int main(void) {
         printf("Fejl: Kunne ikke indlaese noegler.\n");
         return 1;
     }
-    printf("Noegle indlaest: n=%lld, d=%lld\n\n", n, d);
+    printf("Noegle indlaest: n=\033[32m%lld\033[0m, d=\033[34m%lld\033[0m\n\n", n, d);
 
     // Trin 2: Læs den krypterede besked (chiffertekst)
     // Dette kunne være fra en fil eller brugerinput, har dog ikke implementeret så man kan skrive direkte i terminalen.
