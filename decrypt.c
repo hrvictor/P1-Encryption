@@ -77,30 +77,61 @@ void laes_privat_noegle(long long int *n, long long int *d) {
         }
         fclose(f2);
     }
-    
-
 }
 
 int laes_krypteret_input(long long int *ciphertext, int max_blocks) {
-    // Bed brugeren om at indtaste filnavnet til den krypterede fil
-    char fname_a[256];
-    printf("What is your encrypted text file called?\n");
-    scanf("%s", fname_a);
+    //Spørg bruger om de vil decrypte fra en fil eller fra terminalen
+    int n;
+    printf("Would you like to decrypt your message from a [.txt file (1)] or [enter a string manually (2)]? Enter (1/2)\n");
+    scanf("%d", &n);
     
-    FILE *f1 = fopen(fname_a, "r");
-    if(f1 == NULL){
-        printf("!FAILED TO OPEN THE FILE!\n");
+    if (n==1){
+        // Bed brugeren om at indtaste filnavnet til den krypterede fil
+        char fname_a[256];
+        printf("\nWhat is your encrypted text file called?\n");
+        scanf("%s", fname_a);
+        
+        FILE *f1 = fopen(fname_a, "r");
+        if(f1 == NULL){
+            printf("\n!FAILED TO OPEN THE FILE!\n\n");
+            exit(EXIT_FAILURE);
+        }
+
+        int i = 0;
+        // Læs heltal fra filen ind i ciphertext arrayet.
+        while (i < max_blocks && fscanf(f1, "%lld", &ciphertext[i]) == 1) {
+            i++;
+        }
+        fclose(f1);
+
+        return i; // Return antal læste blokke
+    }
+    else if (n==2) {
+        printf("\nPlease enter your ciphertext:\n");
+        
+        //Så fgets fungerer
+        getchar();
+
+        char buffer[1024];
+        //Læs hvad brugeren skriver
+        fgets(buffer, sizeof(buffer), stdin);
+
+        int i = 0;
+        //Split i mellemrum
+        char *token = strtok(buffer, " ");
+
+        //Loop gennem alle tokens
+        while (token != NULL && i < max_blocks) {
+            ciphertext[i] = atoll(token);
+            i++;
+            token = strtok(NULL, " ");
+        }
+        return i;  // antal blokke læst
+    }
+    else{
+        printf("\n!INVALID RESPONSE!\n");
         exit(EXIT_FAILURE);
     }
-
-    int i = 0;
-    // Læs heltal fra filen ind i ciphertext arrayet.
-    while (i < max_blocks && fscanf(f1, "%lld", &ciphertext[i]) == 1) {
-        i++;
-    }
-    fclose(f1);
-
-    return i; // Return antal læste blokke
 }
 
 void dekrypter_data(long long int *ciphertext, int num_blocks, long long int n, long long int d, char *decrypted_message) {
