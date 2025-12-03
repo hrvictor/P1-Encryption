@@ -36,7 +36,7 @@ int decryption(void) {
     char decrypted_message[MAX_TEXT_LENGTH];
     int num_blocks = 0;
 
-    printf("\033[36m Decryption flow started..\n\n\033[0m");
+    printf("\033[36mDecryption flow started..\n\n\033[0m");
     sleep(1);
 
     // Trin 1: Hent den private nøgle (n, d)
