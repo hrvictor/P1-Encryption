@@ -98,7 +98,7 @@ int main(void){
     /*sentence_enc[] = (sentence_values[] * n.key);*/ 
     encrypt(sentence, key, exp);
 
-    for(int i = 0; i <= sen_len; i++){
+    /*for(int i = 0; i <= sen_len; i++){
     
     }
 // Krypteringsfejl?
@@ -111,7 +111,7 @@ int main(void){
         // Eksporter chiffertekst til .txt fil eller udskriv i terminal
     printf("You're encrypted message is %lld, and is also located in the text file 'encrypted_sentence.txt'\n", fully_encrypted_sen);
 
-    /*ctime(time_t);*/
+    /*ctime(time_t);
 
     FILE *f3 = fopen("encrypted_sentence.txt", "a");
     if(f3 == NULL){
@@ -121,7 +121,7 @@ int main(void){
 
     fprintf(f3, "Encrypted Message: %lld\n", fully_encrypted_sen);
 
-    fclose(f3);
+    fclose(f3);*/
 
     printf("Retur til hovedmenu.\n");
     return 0;
