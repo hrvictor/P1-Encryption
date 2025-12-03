@@ -37,10 +37,11 @@ int main(void) {
     n_key = BN_new();
     e_key = BN_new();
 
-    printf("\033[36m\nP1 Krypterings Program (OpenSSL Edition)\n\n\033[0m");
+    printf("\033[36m\nP1 Encryption Program (OpenSSL Edition)\n\n\033[0m");
     sleep(1);
 
-    printf("Do you wish to encrypt a message or do you wish to decrypt. 1 = encryption, 2 = decryption \n");
+    printf("Do you wish to encrypt a message or do you wish to decrypt.- 1 = \033[32mencryption\033[0m, 2 = \033[34mdecryption\033[0m\n");
+    printf("Enter your choice: ");
     scanf("%d",  &encryptordecrypt);
     getchar(); // consume newline
 
@@ -120,10 +121,11 @@ int main(void) {
 
 void menuselection(void)
 {
-    printf("\n--- Starter krypteringsflow ---\n");
+    printf("\n\033[32m--- Starting encryption flow ---\033[0m\n");
 
     // --- INPUT SECTION ---
     printf("Do you wish to encrypt from a directly in the terminal or from a file (1 for terminal and 0 for file) \n");
+    printf("Enter your choice: ");
     scanf("%d", &valg_a);
     getchar(); // Consume newline
 
@@ -136,7 +138,7 @@ void keyselection(void)
 
     // --- KEY SECTION ---
     printf("Do you wish to use an existing key pair or generate a new one? (1 for existing, 0 for new)\n");
-
+    printf("Enter your choice: ");
     if (!fgets(line, sizeof(line), stdin)) {
         printf("Error reading input.\n");
         exit(EXIT_FAILURE);
@@ -149,7 +151,7 @@ void keyselection(void)
     if (valg_b == 1) {
         // Use existing key pair
         printf("\nWhat is the name of the text file containing the key pair (n)?\n");
-
+        printf("Enter the filename: ");
         if (!fgets(fname_b, sizeof(fname_b), stdin)) {
             printf("Error reading filename.\n");
             exit(EXIT_FAILURE);
@@ -265,13 +267,15 @@ void sentenceinput(void)
 {
     if (valg_a == 1) {
         printf("Type the sentence that you wish to have encrypted:\n");
-
+        printf("Enter the sentence: ");
         fgets(sentence, BUFFER_SIZE, stdin);
         sentence[strcspn(sentence, "\n")] = '\0';
     }
     else if (valg_a == 0) {
         printf("What is the name of the file that to encrypt from?\n");
+        printf("Enter the filename: ");
         scanf("%s", fname_a);
+        getchar(); // Consume newline
 
         FILE* f1 = fopen(fname_a, "r");
         if (f1 == NULL) {
@@ -294,6 +298,6 @@ void sentenceinput(void)
         exit(EXIT_FAILURE);
     }
 
-    printf("\n\nher er din saetning:\n %s\n", sentence);
+    printf("\n\nHere is your sentence:\n %s\n", sentence);
 }
 

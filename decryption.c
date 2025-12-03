@@ -26,7 +26,7 @@ int decryption(void) {
     char decrypted_message[MAX_TEXT_LENGTH];
     int num_blocks = 0;
 
-    printf("\033[36mDecryption flow started..\n\n\033[0m");
+    printf("\n\033[36m--- Decryption flow started ---\n\n\033[0m");
     sleep(1);
 
     // 1. Read Private Key
@@ -34,13 +34,13 @@ int decryption(void) {
     sleep(1);
 
     if (BN_is_zero(n) || BN_is_zero(d)) {
-        printf("Fejl: Kunne ikke indlaese noegler.\n");
+        printf("Error: Could not load keys.\n");
         return 1;
     }
     
     char *n_str = BN_bn2hex(n);
     char *d_str = BN_bn2hex(d);
-    printf("Noegle indlaest: n=\033[32m%s\033[0m, d=\033[34m%s\033[0m\n\n", n_str, d_str);
+    printf("Keys loaded: n=\033[32m%s\033[0m, d=\033[34m%s\033[0m\n\n", n_str, d_str);
     OPENSSL_free(n_str);
     OPENSSL_free(d_str);
 
@@ -106,6 +106,7 @@ void laes_privat_noegle(BIGNUM *n, BIGNUM *d) {
 int laes_krypteret_input(BIGNUM **ciphertext, int max_blocks) {
     char fname_a[256];
     printf("What is your encrypted text file called?\n");
+    printf("Enter the filename: ");
     scanf("%s", fname_a);
     
     FILE *f1 = fopen(fname_a, "r");
