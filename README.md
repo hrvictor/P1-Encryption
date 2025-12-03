@@ -1,7 +1,7 @@
-# P1-Encryption
-Group project at AAU
-hej med dig
-HEJ
-skriv et eller andet
-JEg skriver noget random
-Testing
+You need openssl to run this program.
+
+To compile the program, use the following command:
+gcc -o p1progam main.c \
+  -I/opt/homebrew/opt/openssl/include \
+  -L/opt/homebrew/opt/openssl/lib \
+  -lcrypto

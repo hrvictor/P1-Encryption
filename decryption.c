@@ -1,101 +1,109 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
+#include <openssl/bn.h>
 
 // Platform-specific headers for the 'sleep' function
-#ifdef _WIN32 // This macro is automatically defined by Windows compilers (like MinGW/MSVC)
+#ifdef _WIN32 
     #include <windows.h>
-#else // For Linux/macOS (POSIX systems)
+#else 
     #include <unistd.h>
 #endif
 
-// Konstanter
-#define BLOCK_SIZE 2
-#define MAX_TEXT_LENGTH 256
+#define MAX_TEXT_LENGTH 10000 // Increased buffer size
 
-long long int modExp1(long long int base, long long int exp, long long int mod);
-
-/*
-WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! 
-Jeg er lidt gone i hovedet så ingen spårgsmål, jeg skriver på dansk og engelsk depending on what i feel like lol
-*/
-
-
-//Prototyper
-void laes_privat_noegle(long long int *n, long long int *d);
-int laes_krypteret_input(long long int *ciphertext, int max_blocks);
-void dekrypter_data(long long int *ciphertext, int num_blocks, long long int n, long long int d, char *decrypted_message);
+// Prototypes
+void laes_privat_noegle(BIGNUM *n, BIGNUM *d);
+int laes_krypteret_input(BIGNUM **ciphertext, int max_blocks);
+void dekrypter_data(BIGNUM **ciphertext, int num_blocks, BIGNUM *n, BIGNUM *d, char *decrypted_message);
 void udskriv_besked(char *message);
 void save_message(char *message);
 
 int decryption(void) {
-    // Variabler til at gemme nøgler og data
-    long long int n = 0, d = 0;
-    long long int ciphertext[MAX_TEXT_LENGTH];
+    BIGNUM *n = BN_new();
+    BIGNUM *d = BN_new();
+    BIGNUM *ciphertext[MAX_TEXT_LENGTH]; // Array of BIGNUM pointers
     char decrypted_message[MAX_TEXT_LENGTH];
     int num_blocks = 0;
 
     printf("\033[36mDecryption flow started..\n\n\033[0m");
     sleep(1);
 
-    // Trin 1: Hent den private nøgle (n, d)
-    // Vi skal bruge 'd' og 'n' for at dekryptere: m = c^d mod n
-    laes_privat_noegle(&n, &d);
+    // 1. Read Private Key
+    laes_privat_noegle(n, d);
     sleep(1);
-    // Tjek om nøgler blev indlæst korrekt
-    if (n == 0 || d == 0) {
+
+    if (BN_is_zero(n) || BN_is_zero(d)) {
         printf("Fejl: Kunne ikke indlaese noegler.\n");
         return 1;
     }
-    printf("Noegle indlaest: n=\033[32m%lld\033[0m, d=\033[34m%lld\033[0m\n\n", n, d);
+    
+    char *n_str = BN_bn2hex(n);
+    char *d_str = BN_bn2hex(d);
+    printf("Noegle indlaest: n=\033[32m%s\033[0m, d=\033[34m%s\033[0m\n\n", n_str, d_str);
+    OPENSSL_free(n_str);
+    OPENSSL_free(d_str);
 
-    // Trin 2: Læs den krypterede besked (chiffertekst)
-    // Dette kunne være fra en fil eller brugerinput, har dog ikke implementeret så man kan skrive direkte i terminalen.
+    // 2. Read Encrypted Input
+    // Initialize BIGNUM pointers for ciphertext array
+    for(int i=0; i<MAX_TEXT_LENGTH; i++) ciphertext[i] = BN_new();
+    
     num_blocks = laes_krypteret_input(ciphertext, MAX_TEXT_LENGTH);
 
-    // Trin 3: Udfør selve dekrypteringen
-    // Konverterer de store tal (ciphertext) tilbage til tekst 
+    // 3. Decrypt
     dekrypter_data(ciphertext, num_blocks, n, d, decrypted_message);
 
-    // Trin 4: Vis resultatet til brugeren
+    // 4. Show Result
     udskriv_besked(decrypted_message);
 
     sleep(3);
-
     save_message(decrypted_message);
+
+    // Cleanup
+    BN_free(n);
+    BN_free(d);
+    for(int i=0; i<MAX_TEXT_LENGTH; i++) BN_free(ciphertext[i]);
 
     return 0;
 }
 
-void laes_privat_noegle(long long int *n, long long int *d) {
-    // Åbn filen "keys.txt" og find den private nøgle, kan godt bruge forbedringer siden at den kan lave fejl hvis man har flere nøgler i filen.
-    // Så der skal laves en catch all til at fange hvis der er mere end et pair.
-
-    FILE *f2;
-    f2 = fopen("keys.txt", "r");
+void laes_privat_noegle(BIGNUM *n, BIGNUM *d) {
+    FILE *f2 = fopen("keys.txt", "r");
     if (f2 == NULL) {
         printf("ERROR 404 CANNOT OPEN FILE\n");
         return;
-    } else {
-        char line[256];
-        while (fgets(line, sizeof(line), f2) != NULL) {
-            if (strstr(line, "private key") != NULL) {
-                // Find den private nøgle
-                // Since the file format might have multiple keys, this logic might need adjustment later.
-                char *start = strstr(line, "private key");
-                sscanf(start, "private key: (n=%llx, d=%llx)", n, d);
+    }
+
+    char line[2048]; // Increased buffer for long keys
+    while (fgets(line, sizeof(line), f2) != NULL) {
+        if (strstr(line, "private key") != NULL) {
+            char *n_ptr = strstr(line, "n=");
+            char *d_ptr = strstr(line, "d=");
+            
+            if (n_ptr && d_ptr) {
+                // Extract hex strings manually because sscanf with %s might be tricky with delimiters
+                // Format: private key: (n=HEX, d=HEX)
+                
+                // Advance past "n="
+                n_ptr += 2;
+                char *comma = strchr(n_ptr, ',');
+                if (comma) *comma = '\0'; // Terminate n string temporarily
+                BN_hex2bn(&n, n_ptr);
+                
+                // Advance past "d="
+                d_ptr += 2;
+                char *paren = strchr(d_ptr, ')');
+                if (paren) *paren = '\0'; // Terminate d string
+                BN_hex2bn(&d, d_ptr);
+                
                 break;
             }
         }
-        fclose(f2);
     }
-    
-
+    fclose(f2);
 }
 
-int laes_krypteret_input(long long int *ciphertext, int max_blocks) {
-    // Bed brugeren om at indtaste filnavnet til den krypterede fil
+int laes_krypteret_input(BIGNUM **ciphertext, int max_blocks) {
     char fname_a[256];
     printf("What is your encrypted text file called?\n");
     scanf("%s", fname_a);
@@ -107,118 +115,98 @@ int laes_krypteret_input(long long int *ciphertext, int max_blocks) {
     }
 
     int i = 0;
-    // Læs heltal fra filen ind i ciphertext arrayet.
-    while (i < max_blocks && fscanf(f1, "%lld", &ciphertext[i]) == 1) {
+    char hex_buf[2048];
+    // Read space-separated hex strings
+    while (i < max_blocks && fscanf(f1, "%s", hex_buf) == 1) {
+        BN_hex2bn(&ciphertext[i], hex_buf);
         i++;
     }
     fclose(f1);
-
-    return i; // Return antal læste blokke
+    return i;
 }
 
-void dekrypter_data(long long int *ciphertext, int num_blocks, long long int n, long long int d, char *decrypted_message) {
-    // Loop igennem hver blok og dekrypter med RSA formlen m = c^d mod n
-    // Derefter de to karakterer ud fra heltallet m
-    
+void dekrypter_data(BIGNUM **ciphertext, int num_blocks, BIGNUM *n, BIGNUM *d, char *decrypted_message) {
+    BN_CTX *ctx = BN_CTX_new();
+    BIGNUM *m = BN_new();
     int char_index = 0;
+
+    // Determine block size based on key size (approximate)
+    // For simplicity, we assume the same packing logic as encryption:
+    // We need to know how many bytes were packed. 
+    // In this upgraded version, let's assume we pack as many bytes as possible < modulus.
+    // However, to keep it compatible with the simple 'main.c' logic we are about to write,
+    // let's assume a fixed block size or unpack until 0.
+    
+    // NOTE: The user asked for "max size for a message is longer than 250".
+    // We will implement a dynamic unpacking.
+    
     for(int i = 0; i < num_blocks; i++){
-        long long int m = modExp1(ciphertext[i], d, n);
+        // m = c^d mod n
+        BN_mod_exp(m, ciphertext[i], d, n, ctx);
         
-        // Unpack 2 characters from the integer (reverse order of packing)
-        // m = char1 * 256 + char2
-        // So char2 is m % 256, and char1 is m / 256
+        // Convert BIGNUM m back to bytes
+        // BN_bn2bin returns big-endian bytes
+        int num_bytes = BN_num_bytes(m);
+        unsigned char *buf = malloc(num_bytes);
+        BN_bn2bin(m, buf);
         
-        char c2 = (char)(m % 256);
-        char c1 = (char)((m / 256) % 256);
-        
-        decrypted_message[char_index++] = c1;
-        decrypted_message[char_index++] = c2;
+        // Append to message
+        for(int j=0; j<num_bytes; j++) {
+            decrypted_message[char_index++] = (char)buf[j];
+        }
+        free(buf);
     }
-    // Null-terminate the string so printf knows where it ends, took me legit 30 min to figure this shit out :) fuck C
     decrypted_message[char_index] = '\0';
+    
+    BN_free(m);
+    BN_CTX_free(ctx);
 }
 
 void udskriv_besked(char *message) {
-    // Udskriv den dekrypterede besked
     printf("\nDecrypted message:\n%s\n", message);
 }
 
 void save_message(char *message){
-
     int i = 0;
-
     while (i == 0){
+        char fname_a[256];
+        int choice;
+        printf("\n\n\nDo you want to save the message as a .txt file?\n");
+        printf("0. No\n");
+        printf("1. Yes save as a .txt\n");
+        sleep(1);
+        printf("\nEnter your choice: ");
 
-    char fname_a[256];
-    int choice;
-
-    printf("\n\n\nDo you want to save the message as a .txt file?\n");
-    printf("0. No\n");
-    printf("1. Yes save as a .txt\n");
-    sleep(1);
-    printf("\nEnter your choice: ");
-
-        // Læs brugerens valg
         if (scanf("%d", &choice) != 1) {
-            // Håndter ugyldigt input (f.eks. bogstaver)
-            while (getchar() != '\n'); // Ryd input buffer
-            choice = 0; // Sæt til ugyldig værdi
+            while (getchar() != '\n'); 
+            choice = 0; 
         }
 
-    switch (choice)
-    {
-    case 1:
-           printf("\nWhat would you like the file to be called?\n");
-           scanf("%s", fname_a);
-           
-           if (strstr(fname_a, ".txt") != NULL) {
-                    printf("\nFile saved as %s\n", fname_a);
-                } else {
-                    strcat(fname_a, ".txt");
-                    printf("\nFile saved as %s\n", fname_a);
-                }
-
-           FILE *f3 = fopen(fname_a, "w");
-           if(f3 == NULL){
-            printf("!FAILED TO OPEN THE FILE!\n");
-            exit(EXIT_FAILURE);
-           }
-           fprintf(f3, "%s", message);
-           fclose(f3);
-           i = 1;
-           printf("\nFile saved as %s\n", fname_a);
+        switch (choice) {
+        case 1:
+            printf("\nWhat would you like the file to be called?\n");
+            scanf("%s", fname_a);
+            if (strstr(fname_a, ".txt") == NULL) {
+                strcat(fname_a, ".txt");
+            }
+            FILE *f3 = fopen(fname_a, "w");
+            if(f3 == NULL){
+                printf("!FAILED TO OPEN THE FILE!\n");
+                exit(EXIT_FAILURE);
+            }
+            fprintf(f3, "%s", message);
+            fclose(f3);
+            i = 1;
+            printf("\nFile saved as %s\n", fname_a);
             break;
-    case 0:
-           i = 1;
-           break;
-            
-    default:
-    printf("Invalid choice. Please try again.\n");
-        break;
-    }
-    }
-
-}
-
-/* Matematiske YAPP Kopieret fra generer_noegler.c*/
-
-long long int modExp1(long long int base, long long int exp, long long int mod) {
-    long long int result = 1 % mod;
-
-    base = base % mod;
-
-    while (exp > 0) {
-        // If the current bit of exp is 1, multiply result by base (mod mod)
-        if (exp & 1) {
-          result = (result * base) % mod;
+        case 0:
+            i = 1;
+            break;
+        default:
+            printf("Invalid choice. Please try again.\n");
+            break;
         }
-
-        base = base * base % mod; 
-
-        // Shift exponent right by 1 bit (divide by 2)
-        exp = exp / 2; 
     }
-
-    return result;
 }
+
 

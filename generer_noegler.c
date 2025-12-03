@@ -1,146 +1,108 @@
 ﻿#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <math.h>
+#include <openssl/bn.h>
 
-#define E 65537LL
-
-
-int isPrime(int n);
-long long int phi(long long int n);
-long long int gcd(long long int num1, long long int num2);
-long long int modInverse(long long int a, long long int m);
-long long int extended_gcd(long long int a, long long int b, long long int* x, long long int* y);
-long long int modInverse(long long int a, long long int m);
+// Function to handle OpenSSL errors
+void print_openssl_error(const char *msg) {
+    fprintf(stderr, "OpenSSL Error: %s\n", msg);
+    // ERR_print_errors_fp(stderr); // Uncomment if you want detailed OpenSSL errors
+}
 
 int generate_keys(void) {
-    srand((unsigned int)time(NULL));
-    FILE* fptr;
+    printf("Generating RSA keys with OpenSSL... This may take a moment.\n");
 
-    long long int p1 = 0, p2 = 0;
-    int primeindex = 0;
+    // Initialize BIGNUM structures
+    BIGNUM *p = BN_new();
+    BIGNUM *q = BN_new();
+    BIGNUM *n = BN_new();
+    BIGNUM *e = BN_new();
+    BIGNUM *d = BN_new();
+    BIGNUM *phi = BN_new();
+    BIGNUM *p_minus_1 = BN_new();
+    BIGNUM *q_minus_1 = BN_new();
+    BIGNUM *one = BN_new();
+    BN_CTX *ctx = BN_CTX_new();
 
-    while (primeindex < 2) {
-        long long int n = rand();      // random number
-        if (isPrime(n)) {
-            if (primeindex == 0) {
-                p1 = n;
-            }
-            else {
-                p2 = n;
-            }
-            primeindex++;
-        }
-    }
-
-    printf("Prime nr. 1: %lld\n", p1);
-    printf("Prime nr. 2: %lld\n", p2);
-
-    long long n = p1 * p2;
-    long long phi_n = phi(n);
-    // Compute d
-    long long int d = modInverse(E, phi_n);
-    if (d == -1) {
-        printf("Error: modular inverse does not exist\n");
+    if (!p || !q || !n || !e || !d || !phi || !p_minus_1 || !q_minus_1 || !one || !ctx) {
+        print_openssl_error("Failed to allocate BIGNUMs");
         return 1;
     }
 
+    // Set constant 1
+    BN_one(one);
 
-    printf("n = %lld\n", n);
-    printf("phi(n) = %lld\n", phi_n);
-    printf("d = %lld\n", d);
+    // Set e = 65537
+    BN_set_word(e, 65537);
 
-    long long int _gcd = gcd(E, phi_n);
-    printf("gcd (e,phi(n)= %lld\n\n", _gcd);
-    if (_gcd != 1) {
-        printf("Error: Choose new prime numbers\n");
+    // Generate prime p (1024 bits)
+    if (!BN_generate_prime_ex(p, 1024, 0, NULL, NULL, NULL)) {
+        print_openssl_error("Failed to generate prime p");
+        return 1;
+    }
+    printf("Generated prime p.\n");
+
+    // Generate prime q (1024 bits)
+    if (!BN_generate_prime_ex(q, 1024, 0, NULL, NULL, NULL)) {
+        print_openssl_error("Failed to generate prime q");
+        return 1;
+    }
+    printf("Generated prime q.\n");
+
+    // Calculate n = p * q
+    if (!BN_mul(n, p, q, ctx)) {
+        print_openssl_error("Failed to calculate n");
         return 1;
     }
 
-    //stored in txt file as hex using the llx 
-    fptr = fopen("keys.txt", "a");
-    fprintf(fptr, "public key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)", n, E, n, d);
+    // Calculate phi = (p-1) * (q-1)
+    BN_sub(p_minus_1, p, one);
+    BN_sub(q_minus_1, q, one);
+    if (!BN_mul(phi, p_minus_1, q_minus_1, ctx)) {
+        print_openssl_error("Failed to calculate phi");
+        return 1;
+    }
+
+    // Calculate d = e^-1 mod phi
+    if (!BN_mod_inverse(d, e, phi, ctx)) {
+        print_openssl_error("Failed to calculate private key d. Ensure gcd(e, phi) = 1.");
+        return 1;
+    }
+
+    // Convert to hex strings for storage
+    char *n_hex = BN_bn2hex(n);
+    char *e_hex = BN_bn2hex(e);
+    char *d_hex = BN_bn2hex(d);
+
+    printf("\nKeys generated successfully!\n");
+    printf("Public Key (n, e) saved to keys.txt\n");
+
+    // Save to file
+    FILE *fptr = fopen("keys.txt", "a");
+    if (fptr == NULL) {
+        printf("Error opening keys.txt for writing.\n");
+        return 1;
+    }
+    
+    // Format: public key key: (n=HEX, e=HEX)
+    //         private key: (n=HEX, d=HEX)
+    fprintf(fptr, "public key key: (n=%s, e=%s)\nprivate key: (n=%s, d=%s)\n", n_hex, e_hex, n_hex, d_hex);
     fclose(fptr);
 
-    printf("This is the keypair saved to your file keys.txt, in hexadeximals:\npublic key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)\n", n, E, n, d);
+    // Cleanup
+    OPENSSL_free(n_hex);
+    OPENSSL_free(e_hex);
+    OPENSSL_free(d_hex);
+    BN_free(p);
+    BN_free(q);
+    BN_free(n);
+    BN_free(e);
+    BN_free(d);
+    BN_free(phi);
+    BN_free(p_minus_1);
+    BN_free(q_minus_1);
+    BN_free(one);
+    BN_CTX_free(ctx);
 
     return 0;
-}
-int isPrime(int n) {
-    if (n <= 1) return 0;
-    if (n == 2) return 1;
-    if (n % 2 == 0) return 0;
-
-    for (int i = 3; i * i <= n; i += 2) {
-        if (n % i == 0)
-            return 0;
-    }
-    return 1;
-}
-long long int phi(long long int n) {
-    long long int result = n; // Initialize result as n
-
-    // Iterate through all numbers from 2 up to sqrt(n)
-    for (int i = 2; i * i <= n; i++) {
-        // If i is a prime factor of n
-        if (n % i == 0) {
-            // While i divides n, divide n by i and update the result
-            while (n % i == 0) {
-                n /= i;
-            }
-            result -= result / i;
-        }
-    }
-
-    // If n has a prime factor greater than sqrt(n) (there can be at most one such factor)
-    if (n > 1) {
-        result -= result / n;
-    }
-    return result;
-}
-long long int gcd(long long int num1, long long int num2) {
-    // Base case: if the second number is 0, the first number is the GCD
-    if (num2 == 0) {
-        return num1;
-    }
-    // Recursive call with the second number and the remainder of num1 divided by num2
-    return gcd(num2, num1 % num2);
-}
-// --------------------- extended_gcd ---------------------
-// Extended Euclidean Algorithm.
-// For given a and b, it computes:
-//  - g = gcd(a, b)
-//  - x and y such that: a*x + b*y = g
-// x and y are "output parameters" returned through the pointers *x and *y.
-long long int extended_gcd(long long int a, long long int b, long long int* x, long long int* y) {
-    if (b == 0) {
-        *x = 1;
-        *y = 0;
-        return a;
-    }
-    long long int x1, y1;
-    long long int g = extended_gcd(b, a % b, &x1, &y1);
-    *x = y1;
-    *y = x1 - (a / b) * y1;
-
-    return g;
-}
-// --------------------- modInverse ---------------------
-// Computes the modular inverse of a modulo m.
-// That is, finds x such that: a*x ≡ 1 (mod m).
-// Uses the extended Euclidean algorithm.
-// Returns the modular inverse if it exists, otherwise returns -1.
-long long int modInverse(long long int a, long long int m) {
-    long long int x, y;
-    long long int g = extended_gcd(a, m, &x, &y);
-
-    if (g != 1) {
-        // inverse does not exist
-        return -1;
-    }
-
-    // x might be negative, so make it positive modulo m
-    long long int res = x % m;
-    if (res < 0) res += m;
-    return res;
 }
