@@ -6,10 +6,24 @@
 #include <time.h>
 
 #define buffer 250
+#define BLOCK_SIZE 2
 
+// Helper function for RSA math to prevent overflow
+long long modExp(long long base, long long exp, long long mod){
+    long long result = 1;
+    base = base % mod;
+    while (exp > 0) {
+        if (exp % 2 == 1) result = (result * base) % mod;
+        exp = exp >> 1;
+        base = (base * base) % mod;
+    }
+    return result;
+}
 
 int konverter(const char *sentence, int *sentence_enc);
 long long merge(int *sentence_enc, int start_index, int sen_len);
+void get_sentence(int valg_a, char *sentence, char *fname_a);
+void encrypt(char *sentence, long long int key, long long exp);
 
 int main(void){
 
@@ -22,7 +36,8 @@ int main(void){
     int sentence_enc[buffer];
     int sen_len;
     long long int fully_encrypted_sen;
-    long long int key, exp = 65537;
+    long long int key = 0, exp = 65537;
+
 
 // Indtast besked klartekst (fra tastatur eller fil)
     printf("Do you wish to encrypt from a directly in the terminal or from a file (1 for terminal and 0 for file)\n");
@@ -30,30 +45,14 @@ int main(void){
     getchar();
 
 // (Læs input)
-    if(valg_a == 1){
-        printf("Type the sentence that you wish to have encrypted:\n");
-        fgets(sentence, buffer, stdin);
-        sentence[strcspn(sentence, "\n")] = 0;
-    } else if(valg_a == 0){
-        printf("What is the name of the file that to encrypt from?\n");
-        scanf("%s", &fname_a);
-        FILE *f1 = fopen(fname_a, "r");
-            if(f1 == NULL){
-                printf("!FAILED TO OPEN THE FILE!\n");
-                exit(EXIT_FAILURE);
-            }
-            fgets(sentence, buffer, f1);
-            fclose(f1);
-    } else{
-        printf("!You have given impossible Instructions!\n");
-        exit(EXIT_FAILURE);
-    }
+    
+    get_sentence(valg_a, sentence, fname_a); //<--- den her funktion virker ikke helt, kan ikke åbne filer :/
 
     printf("\n\nher er din saetning:\n %s\n", sentence); //den er linje er der kun for at tæste input -Therkel
 
 // Brug eksisterende nøglepar?
 // (Spørg brugeren)
-    printf("Du you wish to use an existing key pair or generate or new one? (1 for existing and 0 for new)\n");
+    printf("Do you wish to use an existing key pair or generate or new one? (1 for existing and 0 for new)\n");
     scanf("%d", &valg_b);
     
     if(valg_b == 1){
@@ -81,7 +80,7 @@ int main(void){
     }
 
 // Konverter besked til heltalsrepræsentation
-// (Konverter karakterer til numeriske værdi    er)', vi bruger bare "ASCII"
+// (Konverter karakterer til numeriske værdier)', vi bruger bare "ASCII"
     sen_len = konverter(sentence, sentence_enc); //<--- fuck det her er sutter >:^(
 
     printf("den oprindelige tekst: '%s'\n", sentence);
@@ -92,14 +91,16 @@ int main(void){
     }
     printf("\n");
 
-    long long int merged_sentence_enc = merge(sentence_enc, 0, sen_len);
+            /*long long int merged_sentence_enc = merge(sentence_enc, 0, sen_len);*/ //<--- det her shit dur ikke - overflow
 
-    printf("den samlede tal raekke: %lld\n", merged_sentence_enc);
+            /*printf("den samlede tal raekke: %lld\n", merged_sentence_enc);*/
 // Krypter med RSA: cipher = besked^e mod n
     /*sentence_enc[] = (sentence_values[] * n.key);*/ 
-    long long int vilk = pow(merged_sentence_enc, exp);
-    fully_encrypted_sen = vilk % key;
- 
+    encrypt(sentence, key, exp);
+
+    for(int i = 0; i <= sen_len; i++){
+    
+    }
 // Krypteringsfejl?
 // (Tjek om operationen lykkedes)
 
@@ -112,7 +113,7 @@ int main(void){
 
     /*ctime(time_t);*/
 
-    FILE *f3 = fopen("_encrypted_sentence.txt", "a");
+    FILE *f3 = fopen("encrypted_sentence.txt", "a");
     if(f3 == NULL){
         printf("Filen kunne ikke aabnes\n");
         exit(EXIT_FAILURE);
@@ -138,7 +139,72 @@ long long merge(int *sentence_enc, int start_index, int sen_len){
     long long merged_number = 0;
 
     for(int i; i < sen_len; i++){
-        merged_number = merged_number + sentence_enc[start_index + i];
+        merged_number = merged_number * 1000 + sentence_enc[start_index + i];
     }
     return merged_number;
+}
+
+void get_sentence(int valg_a, char *sentence, char *fname_a){
+    
+    if(valg_a == 1){
+            printf("Type the sentence that you wish to have encrypted:\n");
+            fgets(sentence, buffer, stdin);
+            sentence[strcspn(sentence, "\n")] = 0;
+        } else if(valg_a == 0){
+            FILE *f1 = fopen(fname_a, "r");
+                if(f1 == NULL){
+                printf("!FAILED TO OPEN THE FILE!\n");
+                exit(EXIT_FAILURE);
+            }
+            printf("What is the name of the file that to encrypt from?\n");
+            scanf("%s", &fname_a);
+            fgets(sentence, buffer, f1);
+            fclose(f1);       
+        } else{
+            printf("!You have given impossible Instructions!\n");
+            exit(EXIT_FAILURE);
+        }
+}
+
+void encrypt(char *sentence, long long int key, long long exp){
+ // --- ENCRYPTION SECTION ---
+    // We must encrypt in blocks to match the decryption logic
+    int len = strlen(sentence);
+    
+    // Pad with nulls if needed
+    if(len % BLOCK_SIZE != 0){
+        sentence[len] = '\0';
+        len++;
+    }
+
+    int numBlocks = len / BLOCK_SIZE;
+    long long int ciphertext[256]; 
+
+    printf("The original message: '%s'\n", sentence);
+    printf("Encrypted blocks: ");
+
+    FILE *f3 = fopen("crypted.txt", "w"); // Use "w" to overwrite/start fresh
+    if(f3 == NULL){
+        printf("!The file failed to open!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for(int b = 0; b < numBlocks; b++){
+        long long int m = 0;
+        // Pack characters into one integer
+        for (int j = 0; j < BLOCK_SIZE; j++) {
+            unsigned char ch = (unsigned char)sentence[b * BLOCK_SIZE + j];
+            m = m * 256 + ch;
+        }
+        
+        long long int c = modExp(m, exp, key);
+        ciphertext[b] = c;
+        
+        printf("%lld ", c);
+        fprintf(f3, "%lld ", c); // Write space-separated blocks
+    }
+    printf("\n");
+    
+    fclose(f3);
+    printf("Your encrypted message is located in the text file 'crypted.txt'\n");
 }
