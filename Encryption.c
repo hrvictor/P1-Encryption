@@ -30,12 +30,7 @@ int ikmain(void) {
 
     // Initialized variables to be safe
     long long int key = 0, exp = 65537;
-
-    // --- INPUT SECTION ---
-    printf("Do you wish to encrypt from a directly in the terminal or from a file (1 for terminal and 0 for file)\n");
-    scanf("%d", &choice_a);
-    getchar(); // Consume newline
-
+ 
     if (choice_a == 1) {
         printf("Type the sentence that you wish to have encrypted:\n");
         fgets(sentence, buffer, stdin);

@@ -34,7 +34,7 @@ int main(void) {
     printf("\033[36m\nWelcome to K.A.T.C.J.H Encryption Program\n\n\033[0m");
     sleep(1);
 
-    printf("Do you wish to encrypt a message or do you wish to decrypt. 1 = encryption, 2 = decryption \n");
+    printf("Do you wish to encrypt a message or do you wish to decrypt?\n1 = encryption, 2 = decryption \n");
     scanf("%d",  &encryptordecrypt);
     getchar(); // consume newline
 
@@ -94,7 +94,7 @@ void menuselection(void)
     printf("\n--- Starting Encryption flow ---\n");
 
     // --- INPUT SECTION ---
-    printf("Do you wish to encrypt from a directly in the terminal or from a file (1 for terminal and 0 for file) \n");
+    printf("Do you wish to encrypt from a directly in the terminal or from a file\n(Press: 0 for file and 1 for terminal)\n");
     scanf("%d", &choice_a);
     getchar(); // Consume newline
 
