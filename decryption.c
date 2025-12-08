@@ -10,27 +10,21 @@
     #include <unistd.h>
 #endif
 
-// Konstanter
+// Constants
 #define BLOCK_SIZE 2
 #define MAX_TEXT_LENGTH 256
 
 long long int modExp1(long long int base, long long int exp, long long int mod);
 
-/*
-WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! WARNING!!!!! 
-Jeg er lidt gone i hovedet så ingen spårgsmål, jeg skriver på dansk og engelsk depending on what i feel like lol
-*/
-
-
-//Prototyper
-void laes_privat_noegle(long long int *n, long long int *d);
-int laes_krypteret_input(long long int *ciphertext, int max_blocks);
-void dekrypter_data(long long int *ciphertext, int num_blocks, long long int n, long long int d, char *decrypted_message);
-void udskriv_besked(char *message);
+//Prototypes
+void read_private_key(long long int *n, long long int *d);
+int read_encrypted_input(long long int *ciphertext, int max_blocks);
+void decrypt_data(long long int *ciphertext, int num_blocks, long long int n, long long int d, char *decrypted_message);
+void print_message(char *message);
 void save_message(char *message);
 
 int decryption(void) {
-    // Variabler til at gemme nøgler og data
+    //Variabls to save keys and data
     long long int n = 0, d = 0;
     long long int ciphertext[MAX_TEXT_LENGTH];
     char decrypted_message[MAX_TEXT_LENGTH];
@@ -39,27 +33,26 @@ int decryption(void) {
     printf("\033[36mDecryption flow started..\n\n\033[0m");
     sleep(1);
 
-    // Trin 1: Hent den private nøgle (n, d)
-    // Vi skal bruge 'd' og 'n' for at dekryptere: m = c^d mod n
-    laes_privat_noegle(&n, &d);
+    // Step 1: Load the private key (n, d)
+    // We will use 'd' og 'n' to decrypt: m = c^d mod n
+    read_private_key(&n, &d);
     sleep(1);
-    // Tjek om nøgler blev indlæst korrekt
+    // Check if keys was read
     if (n == 0 || d == 0) {
-        printf("Fejl: Kunne ikke indlaese noegler.\n");
+        printf("Error: Could not read keys\n");
         return 1;
     }
-    printf("Noegle indlaest: n=\033[32m%lld\033[0m, d=\033[34m%lld\033[0m\n\n", n, d);
+    printf("Key read: n=\033[32m%lld\033[0m, d=\033[34m%lld\033[0m\n\n", n, d);
 
-    // Trin 2: Læs den krypterede besked (chiffertekst)
-    // Dette kunne være fra en fil eller brugerinput, har dog ikke implementeret så man kan skrive direkte i terminalen.
-    num_blocks = laes_krypteret_input(ciphertext, MAX_TEXT_LENGTH);
+    // Step 2: Read the encrypted message (ciphertext)
+    num_blocks = read_encrypted_input(ciphertext, MAX_TEXT_LENGTH);
 
-    // Trin 3: Udfør selve dekrypteringen
-    // Konverterer de store tal (ciphertext) tilbage til tekst 
-    dekrypter_data(ciphertext, num_blocks, n, d, decrypted_message);
+    // Step 3: Decrypt
+    // Convert numbers back to text 
+    decrypt_data(ciphertext, num_blocks, n, d, decrypted_message);
 
-    // Trin 4: Vis resultatet til brugeren
-    udskriv_besked(decrypted_message);
+    // Step 4: Show user the result
+    print_message(decrypted_message);
 
     sleep(3);
 
@@ -68,9 +61,9 @@ int decryption(void) {
     return 0;
 }
 
-void laes_privat_noegle(long long int *n, long long int *d) {
-    // Åbn filen "keys.txt" og find den private nøgle, kan godt bruge forbedringer siden at den kan lave fejl hvis man har flere nøgler i filen.
-    // Så der skal laves en catch all til at fange hvis der er mere end et pair.
+void read_private_key(long long int *n, long long int *d) {
+    // Open the file "keys.txt" and find the private key; it could definitely use improvements since it can produce errors if you have multiple keys in the file.
+    // Therefore, a catch-all needs to be implemented to handle cases where there is more than one pair.
 
     FILE *f2;
     f2 = fopen("keys.txt", "r");
@@ -81,7 +74,7 @@ void laes_privat_noegle(long long int *n, long long int *d) {
         char line[256];
         while (fgets(line, sizeof(line), f2) != NULL) {
             if (strstr(line, "private key") != NULL) {
-                // Find den private nøgle
+                // Find the private key
                 // Since the file format might have multiple keys, this logic might need adjustment later.
                 char *start = strstr(line, "private key");
                 sscanf(start, "private key: (n=%llx, d=%llx)", n, d);
@@ -94,8 +87,8 @@ void laes_privat_noegle(long long int *n, long long int *d) {
 
 }
 
-int laes_krypteret_input(long long int *ciphertext, int max_blocks) {
-    // Bed brugeren om at indtaste filnavnet til den krypterede fil
+int read_encrypted_input(long long int *ciphertext, int max_blocks) {
+    // Ask the user to enter the filename of the encrypted file
     char fname_a[256];
     printf("What is your encrypted text file called?\n");
     scanf("%s", fname_a);
@@ -107,18 +100,18 @@ int laes_krypteret_input(long long int *ciphertext, int max_blocks) {
     }
 
     int i = 0;
-    // Læs heltal fra filen ind i ciphertext arrayet.
+    // Read integers from the file into the ciphertext array.
     while (i < max_blocks && fscanf(f1, "%lld", &ciphertext[i]) == 1) {
         i++;
     }
     fclose(f1);
 
-    return i; // Return antal læste blokke
+    return i; //Return number of read blocks
 }
 
-void dekrypter_data(long long int *ciphertext, int num_blocks, long long int n, long long int d, char *decrypted_message) {
-    // Loop igennem hver blok og dekrypter med RSA formlen m = c^d mod n
-    // Derefter de to karakterer ud fra heltallet m
+void decrypt_data(long long int *ciphertext, int num_blocks, long long int n, long long int d, char *decrypted_message) {
+    // Loop through each block and decrypt using the RSA formula m = c^d mod n
+    // Then extract the two characters from the integer m
     
     int char_index = 0;
     for(int i = 0; i < num_blocks; i++){
@@ -138,8 +131,8 @@ void dekrypter_data(long long int *ciphertext, int num_blocks, long long int n, 
     decrypted_message[char_index] = '\0';
 }
 
-void udskriv_besked(char *message) {
-    // Udskriv den dekrypterede besked
+void print_message(char *message) {
+    // Print the decrypted message
     printf("\nDecrypted message:\n%s\n", message);
 }
 
@@ -158,11 +151,11 @@ void save_message(char *message){
     sleep(1);
     printf("\nEnter your choice: ");
 
-        // Læs brugerens valg
+        // Read user choice
         if (scanf("%d", &choice) != 1) {
-            // Håndter ugyldigt input (f.eks. bogstaver)
-            while (getchar() != '\n'); // Ryd input buffer
-            choice = 0; // Sæt til ugyldig værdi
+            // Handle invalid input
+            while (getchar() != '\n'); // Clear input buffer
+            choice = 0; // assign invalid value
         }
 
     switch (choice)
@@ -200,7 +193,7 @@ void save_message(char *message){
 
 }
 
-/* Matematiske YAPP Kopieret fra generer_noegler.c*/
+//mod exp copied from generate_keys
 
 long long int modExp1(long long int base, long long int exp, long long int mod) {
     long long int result = 1 % mod;

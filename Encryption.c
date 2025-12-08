@@ -22,26 +22,26 @@ long long modExp(long long base, long long exp, long long mod) {
 
 int ikmain(void) {
 
-    printf("\n--- Starter krypteringsflow ---\n");
+    printf("\n--- Starting Encryption flow ---\n");
 
     char sentence[buffer];
     char fname_a[buffer], fname_b[buffer];
-    int valg_a, valg_b;
+    int choice_a, choice_b;
 
     // Initialized variables to be safe
     long long int key = 0, exp = 65537;
 
     // --- INPUT SECTION ---
     printf("Do you wish to encrypt from a directly in the terminal or from a file (1 for terminal and 0 for file)\n");
-    scanf("%d", &valg_a);
+    scanf("%d", &choice_a);
     getchar(); // Consume newline
 
-    if (valg_a == 1) {
+    if (choice_a == 1) {
         printf("Type the sentence that you wish to have encrypted:\n");
         fgets(sentence, buffer, stdin);
         sentence[strcspn(sentence, "\n")] = 0;
     }
-    else if (valg_a == 0) {
+    else if (choice_a == 0) {
         printf("What is the name of the file that to encrypt from?\n");
         scanf("%s", fname_a);
         FILE* f1 = fopen(fname_a, "r");
@@ -58,13 +58,13 @@ int ikmain(void) {
         exit(EXIT_FAILURE);
     }
 
-    printf("\n\nher er din saetning:\n %s\n", sentence);
+    printf("\n\nHere is your sentence:\n %s\n", sentence);
 
     // --- KEY SECTION ---
     printf("Du you wish to use an existing key pair or generate or new one? (1 for existing and 0 for new)\n");
-    scanf("%d", &valg_b);
+    scanf("%d", &choice_b);
 
-    if (valg_b == 1) {
+    if (choice_b == 1) {
         printf("\nwhat is the name of the text file containing the key pair (n)?\n");
         scanf("%s", fname_b);
 
@@ -99,7 +99,7 @@ int ikmain(void) {
 
         printf("Here is your keypair: '%lld' (hex: %llx)\n", key, key);
     }
-    else if (valg_b == 0) {
+    else if (choice_b == 0) {
         // Placeholder for key generation
         printf("Key generation not implemented yet. Using dummy key 3233 (example)\n");
         key = 3233; // Temporary fallback for testing
@@ -122,12 +122,12 @@ int ikmain(void) {
     int numBlocks = len / BLOCK_SIZE;
     long long int ciphertext[256];
 
-    printf("den oprindelige tekst: '%s'\n", sentence);
+    printf("The original text: '%s'\n", sentence);
     printf("Encrypted blocks: ");
 
     FILE* f3 = fopen("crypted.txt", "w"); // Use "w" to overwrite/start fresh
     if (f3 == NULL) {
-        printf("Filen kunne ikke aabnes\n");
+        printf("File could not be opened\n");
         exit(EXIT_FAILURE);
     }
 
@@ -150,8 +150,6 @@ int ikmain(void) {
     fclose(f3);
     printf("Your encrypted message is located in the text file 'crypted.txt'\n");
 
-    printf("Retur til hovedmenu.\n");
+    printf("Return to main menu.\n");
     return 0;
 }
-
-// Removed unused functions konverter and merge as they are replaced by block logic

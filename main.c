@@ -6,7 +6,7 @@
 #include <time.h>
 #include "decryption.c"
 #include "Encryption.c"
-#include "generer_noegler.c"
+#include "generate_keys.c"
 
 // Platform-specific headers for the 'sleep' function
 #ifdef _WIN32 // This macro is automatically defined by Windows compilers (like MinGW/MSVC)
@@ -24,14 +24,14 @@ void menuselection(void);
 
 char sentence[buffer];
 char fname_a[buffer], fname_b[buffer];
-int valg_a, valg_b;
+int choice_a, choice_b;
 int encryptordecrypt;
 unsigned long long key;                  // RSA modulus n
 const long long public_exp = 0x10001LL;  // RSA public exponent e = 65537
 
 int main(void) {
 
-    printf("\033[36m\nP1 Krypterings Program\n\n\033[0m");
+    printf("\033[36m\nWelcome to K.A.T.C.J.H Encryption Program\n\n\033[0m");
     sleep(1);
 
     printf("Do you wish to encrypt a message or do you wish to decrypt. 1 = encryption, 2 = decryption \n");
@@ -40,7 +40,7 @@ int main(void) {
 
     if (encryptordecrypt == 1) {
         // Encryption flow
-        menuselection();  // gets valg_a, key, and sentence
+        menuselection();  // gets choice_a, key, and sentence
 
         // --- ENCRYPTION SECTION ---
         int len = (int)strlen(sentence);
@@ -56,7 +56,7 @@ int main(void) {
 
         FILE* f3 = fopen("crypted.txt", "w"); // Use "w" to overwrite/start fresh
         if (f3 == NULL) {
-            printf("Filen kunne ikke aabnes\n");
+            printf("The file could not be opened\n");
             exit(EXIT_FAILURE);
         }
 
@@ -82,20 +82,20 @@ int main(void) {
         decryption();
     }
     else {
-        printf("fejl input!\n");
+        printf("Invalid input!\n");
     }
 
-    printf("Retur til hovedmenu.\n");
+    printf("Return to main menu.\n");
     return 0;
 }
 
 void menuselection(void)
 {
-    printf("\n--- Starter krypteringsflow ---\n");
+    printf("\n--- Starting Encryption flow ---\n");
 
     // --- INPUT SECTION ---
     printf("Do you wish to encrypt from a directly in the terminal or from a file (1 for terminal and 0 for file) \n");
-    scanf("%d", &valg_a);
+    scanf("%d", &choice_a);
     getchar(); // Consume newline
 
     keyselection();
@@ -112,12 +112,12 @@ void keyselection(void)
         printf("Error reading input.\n");
         exit(EXIT_FAILURE);
     }
-    if (sscanf(line, "%d", &valg_b) != 1) {
+    if (sscanf(line, "%d", &choice_b) != 1) {
         printf("Invalid input.\n");
         exit(EXIT_FAILURE);
     }
 
-    if (valg_b == 1) {
+    if (choice_b == 1) {
         // Use existing key pair
         printf("\nWhat is the name of the text file containing the key pair (n)?\n");
 
@@ -160,7 +160,7 @@ void keyselection(void)
                (long long)key, (unsigned long long)key);
         sentenceinput();
     }
-    else if (valg_b == 0) {
+    else if (choice_b == 0) {
         // Generate new key pair
         generate_keys();
 
@@ -211,13 +211,13 @@ void keyselection(void)
 
 void sentenceinput(void)
 {
-    if (valg_a == 1) {
+    if (choice_a == 1) {
         printf("Type the sentence that you wish to have encrypted:\n");
 
         fgets(sentence, buffer, stdin);
         sentence[strcspn(sentence, "\n")] = '\0';
     }
-    else if (valg_a == 0) {
+    else if (choice_a == 0) {
         printf("What is the name of the file that to encrypt from?\n");
         scanf("%s", fname_a);
 

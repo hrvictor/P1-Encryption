@@ -17,26 +17,26 @@ int generate_keys(void) {
     srand((unsigned int)time(NULL));
     FILE* fptr;
 
-    long long int p1 = 0, p2 = 0;
+    long long int p = 0, q = 0;
     int primeindex = 0;
 
     while (primeindex < 2) {
         long long int n = rand();      // random number
         if (isPrime(n)) {
             if (primeindex == 0) {
-                p1 = n;
+                p = n;
             }
             else {
-                p2 = n;
+                q = n;
             }
             primeindex++;
         }
     }
 
-    printf("Prime nr. 1: %lld\n", p1);
-    printf("Prime nr. 2: %lld\n", p2);
+    printf("Prime nr. 1: %lld\n", p);
+    printf("Prime nr. 2: %lld\n", q);
 
-    long long n = p1 * p2;
+    long long n = p * q;
     long long phi_n = phi(n);
     // Compute d
     long long int d = modInverse(E, phi_n);
