@@ -10,12 +10,16 @@
 #define BLOCK_SIZE 2
 
 void generate_or_use_owned_key(void);
-
 void encryptfromfileorterminal(void);
-void generate_or_use_owned_key(void);
 void choicea(void);
 void choiceb(void);
 long long modExp(long long base, long long exp, long long mod);
+
+// *** Add these prototypes ***
+int encryptordecrypt_(void);
+int encrypt_message(void);
+void decryption(void);
+void generate_keys(void);
 
 char sentence[buffer];
 char fname_a[buffer], fname_b[buffer];
@@ -48,8 +52,9 @@ int encryptordecrypt_()
         decryption();
     }
     else {
-        printf("fejl input!\n");
+        printf("invalid input!\n");
     }
+    return 1;
 }
 
 void encryptfromfileorterminal(void)
@@ -161,7 +166,7 @@ void choiceb(void)
     else if (choice_b == 0) {
         // Generate new key pair
         generate_keys();
-        printf("type keys.txt to start encryption.\n");
+        printf("type name of the public key txt file + .txt to start encryption.\n");
 
         //checks for file otherwise 
         if (!fgets(fname_b, sizeof(fname_b), stdin)) {
@@ -222,7 +227,7 @@ int encrypt_message()
 
     FILE* f3 = fopen("crypted.txt", "w"); // Use "w" to overwrite/start fresh
     if (f3 == NULL) {
-        printf("Filen kunne ikke aabnes\n");
+        printf("File could not open\n");
         exit(EXIT_FAILURE);
     }
 
@@ -242,6 +247,7 @@ int encrypt_message()
 
     fclose(f3);
     printf("Your encrypted message is located in the text file 'crypted.txt'\n");
+    return 0;
 }
 
 // Helper function for RSA math to prevent overflow
