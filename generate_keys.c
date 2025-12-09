@@ -1,12 +1,13 @@
-﻿#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <stdio.h>
 
 #define E 65537LL
 
 
-int isPrime(int n);
+
+long long int isPrime(long long int n);
 long long int phi(long long int n);
 long long int gcd(long long int num1, long long int num2);
 long long int modInverse(long long int a, long long int m);
@@ -58,15 +59,20 @@ int generate_keys(void) {
     }
 
     //stored in txt file as hex using the llx 
-    fptr = fopen("keys.txt", "a");
-    fprintf(fptr, "public key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)", n, E, n, d);
+    fptr = fopen("public.txt", "a");
+    fprintf(fptr, "public key key: (n=%llx, e=%llx)\n", n, E);
     fclose(fptr);
 
-    printf("This is the keypair saved to your file keys.txt, in hexadeximals:\npublic key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)\n", n, E, n, d);
+    //stored in txt file as hex using the llx 
+    fptr = fopen("private.txt", "a");
+    fprintf(fptr, "private key: (n=%llx, d=%llx)\n", n, d);
+    fclose(fptr);
+
+    printf("This is the keypair saved to your files public.txt and private.txt, in hexadeximals:\npublic key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)\n", n, E, n, d);
 
     return 0;
 }
-int isPrime(int n) {
+long long int isPrime(long long int n) {
     if (n <= 1) return 0;
     if (n == 2) return 1;
     if (n % 2 == 0) return 0;
@@ -106,24 +112,38 @@ long long int gcd(long long int num1, long long int num2) {
     // Recursive call with the second number and the remainder of num1 divided by num2
     return gcd(num2, num1 % num2);
 }
+
+
 // --------------------- extended_gcd ---------------------
 // Extended Euclidean Algorithm.
 // For given a and b, it computes:
 //  - g = gcd(a, b)
 //  - x and y such that: a*x + b*y = g
 // x and y are "output parameters" returned through the pointers *x and *y.
-long long int extended_gcd(long long int a, long long int b, long long int* x, long long int* y) {
-    if (b == 0) {
-        *x = 1;
-        *y = 0;
-        return a;
-    }
-    long long int x1, y1;
-    long long int g = extended_gcd(b, a % b, &x1, &y1);
-    *x = y1;
-    *y = x1 - (a / b) * y1;
+long long int extended_gcd(long long int a, long long int b,long long int* x, long long int* y)
+{
+    long long int x0 = 1, y0 = 0;  // coefficients for a
+    long long int x1 = 0, y1 = 1;  // coefficients for b
 
-    return g;
+    while (b != 0) {
+        long long int q = a / b;
+
+        long long int temp = a % b;
+        a = b;
+        b = temp;
+
+        temp = x0 - q * x1;
+        x0 = x1;
+        x1 = temp;
+
+        temp = y0 - q * y1;
+        y0 = y1;
+        y1 = temp;
+    }
+
+    *x = x0;
+    *y = y0;
+    return a;   // a is the gcd
 }
 // --------------------- modInverse ---------------------
 // Computes the modular inverse of a modulo m.
