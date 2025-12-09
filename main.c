@@ -15,7 +15,7 @@ void encryptfromfileorterminal(void);
 void generate_or_use_owned_key(void);
 void choicea(void);
 void choiceb(void);
-
+long long modExp(long long base, long long exp, long long mod);
 
 char sentence[buffer];
 char fname_a[buffer], fname_b[buffer];
@@ -41,41 +41,7 @@ int encryptordecrypt_()
     if (encryptordecrypt == 1) {
         // Encryption flow
         encryptfromfileorterminal();  // gets choice_a, key, and sentence
-
-        // --- ENCRYPTION SECTION ---
-        int len = (int)strlen(sentence);
-
-        // Pad with nulls if needed so we always have complete 2-byte blocks
-        if (len % BLOCK_SIZE != 0) {
-            sentence[len] = '\0';
-            len++;
-        }
-
-        int numBlocks = len / BLOCK_SIZE;
-        printf("Encrypted blocks: ");
-
-        FILE* f3 = fopen("crypted.txt", "w"); // Use "w" to overwrite/start fresh
-        if (f3 == NULL) {
-            printf("Filen kunne ikke aabnes\n");
-            exit(EXIT_FAILURE);
-        }
-
-        for (int b = 0; b < numBlocks; b++) {
-            long long int m = 0;
-            // Pack characters into one integer
-            for (int j = 0; j < BLOCK_SIZE; j++) {
-                unsigned char ch = (unsigned char)sentence[b * BLOCK_SIZE + j];
-                m = m * 256 + ch;
-            }
-
-            long long int c = modExp(m, public_exp, (long long)key);
-            printf("%lld ", c);
-            fprintf(f3, "%lld ", c); // Write space-separated blocks
-        }
-        printf("\n");
-
-        fclose(f3);
-        printf("Your encrypted message is located in the text file 'crypted.txt'\n");
+        encrypt_message();
     }
     else if (encryptordecrypt == 2) {
         // Decryption flow
@@ -195,7 +161,9 @@ void choiceb(void)
     else if (choice_b == 0) {
         // Generate new key pair
         generate_keys();
+        printf("type keys.txt to start encryption.\n");
 
+        //checks for file otherwise 
         if (!fgets(fname_b, sizeof(fname_b), stdin)) {
             printf("Error reading filename.\n");
             exit(EXIT_FAILURE);
@@ -229,12 +197,61 @@ void choiceb(void)
             exit(EXIT_FAILURE);
         }
 
-        printf("Here is your keypair: '%lld' (hex: %llx)\n",
-            (long long)key, (unsigned long long)key);
+        printf("Here is your keypair: '%lld' (hex: %llx)\n",(long long)key, (unsigned long long)key);
         choicea();
     }
     else {
         printf("!You have given impossible instructions!\n");
         exit(EXIT_FAILURE);
     }
+}
+
+int encrypt_message()
+{
+    // --- ENCRYPTION SECTION ---
+    int len = (int)strlen(sentence);
+
+    // Pad with nulls if needed so we always have complete 2-byte blocks
+    if (len % BLOCK_SIZE != 0) {
+        sentence[len] = '\0';
+        len++;
+    }
+
+    int numBlocks = len / BLOCK_SIZE;
+    printf("Encrypted blocks: ");
+
+    FILE* f3 = fopen("crypted.txt", "w"); // Use "w" to overwrite/start fresh
+    if (f3 == NULL) {
+        printf("Filen kunne ikke aabnes\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int b = 0; b < numBlocks; b++) {
+        long long int m = 0;
+        // Pack characters into one integer
+        for (int j = 0; j < BLOCK_SIZE; j++) {
+            unsigned char ch = (unsigned char)sentence[b * BLOCK_SIZE + j];
+            m = m * 256 + ch;
+        }
+
+        long long int c = modExp(m, public_exp, (long long)key);
+        printf("%lld ", c);
+        fprintf(f3, "%lld ", c); // Write space-separated blocks
+    }
+    printf("\n");
+
+    fclose(f3);
+    printf("Your encrypted message is located in the text file 'crypted.txt'\n");
+}
+
+// Helper function for RSA math to prevent overflow
+long long modExp(long long base, long long exp, long long mod) {
+    long long result = 1;
+    base = base % mod;
+    while (exp > 0) {
+        if (exp % 2 == 1) result = (result * base) % mod;
+        exp = exp >> 1;
+        base = (base * base) % mod;
+    }
+    return result;
 }
