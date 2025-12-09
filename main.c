@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-
+#include "decryption.c"
+#include "generate_keys.c"
 
 
 #define buffer 250
@@ -18,8 +19,8 @@ long long modExp(long long base, long long exp, long long mod);
 // *** Add these prototypes ***
 int encryptordecrypt_(void);
 int encrypt_message(void);
-void decryption(void);
-void generate_keys(void);
+int decryption(void);
+int generate_keys(void);
 
 char sentence[buffer];
 char fname_a[buffer], fname_b[buffer];
