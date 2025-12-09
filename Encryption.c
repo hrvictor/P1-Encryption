@@ -56,7 +56,7 @@ int ikmain(void) {
     printf("\n\nHere is your sentence:\n %s\n", sentence);
 
     // --- KEY SECTION ---
-    printf("Du you wish to use an existing key pair or generate or new one? (1 for existing and 0 for new)\n");
+    printf("Do you wish to use an existing key pair or generate or new one? (1 for existing and 0 for new)\n");
     scanf("%d", &choice_b);
 
     if (choice_b == 1) {

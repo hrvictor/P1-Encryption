@@ -68,7 +68,7 @@ int generate_keys(void) {
     fprintf(fptr, "private key: (n=%llx, d=%llx)\n", n, d);
     fclose(fptr);
 
-    printf("This is the keypair saved to your files public.txt and private.txt, in hexadeximals:\npublic key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)\n", n, E, n, d);
+    printf("This is the keypair saved to your files public.txt and private.txt, in hexadecimals:\npublic key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)\n", n, E, n, d);
 
     return 0;
 }

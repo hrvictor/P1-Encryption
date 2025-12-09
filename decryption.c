@@ -17,7 +17,7 @@ void print_message(char* message);
 void save_message(char* message);
 
 int decryption(void) {
-    //Variabls to save keys and data
+    //Variables to save keys and data
     long long int n = 0, d = 0;
     long long int ciphertext[MAX_TEXT_LENGTH];
     char decrypted_message[MAX_TEXT_LENGTH];
@@ -27,7 +27,7 @@ int decryption(void) {
     
 
     // Step 1: Load the private key (n, d)
-    // We will use 'd' og 'n' to decrypt: m = c^d mod n
+    // We will use 'd' and 'n' to decrypt: m = c^d mod n
     read_private_key(&n, &d);
     
     // Check if keys was read

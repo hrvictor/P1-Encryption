@@ -31,7 +31,7 @@ const long long public_exp = 0x10001LL;  // RSA public exponent e = 65537
 
 int main(void) {
 
-    printf("\033[36m\nP1 Krypterings Program\n\n\033[0m");
+    printf("\033[36m\nP1 Encryption Program\n\n\033[0m");
     printf("Do you wish to encrypt a message or do you wish to decrypt. 1 = encryption, 2 = decryption \n");
     scanf("%d", &encryptordecrypt);
 
@@ -61,7 +61,7 @@ int encryptordecrypt_()
 void encryptfromfileorterminal(void)
 {
 
-    printf("\n--- Starter krypteringsflow ---\n");
+    printf("\n--- Starting encryption flow ---\n");
 
     // --- INPUT SECTION ---
     printf("Do you wish to encrypt from a directly in the terminal or from a file (1 for terminal and 0 for file) \n");
@@ -115,7 +115,7 @@ void choicea(void)
         exit(EXIT_FAILURE);
     }
 
-    printf("\n\nher er din saetning:\n %s\n", sentence);
+    printf("\n\nHere is your sentence:\n %s\n", sentence);
 }
 
 
