@@ -28,8 +28,8 @@ const long long public_exp = 0x10001LL;  // RSA public exponent e = 65537
 
 int main(void) {
 
-    printf("\033[36m\nP1 Encryption Program\n\n\033[0m");
-    printf("Do you wish to encrypt a message or do you wish to decrypt. 1 = encryption, 2 = decryption \n");
+    printf("\033[36m\nWelcome to K.A.T.J.C.H the RSA encryption program\n\n\033[0m");
+    printf("Do you wish to encrypt a message or do you wish to decrypt:\n0 = encryption 1 = decryption \n");
     scanf("%d", &encryptordecrypt);
 
     getchar(); // consume newline
@@ -40,12 +40,12 @@ int main(void) {
 int encrypt_or_decrypt()
 {
 
-    if (encryptordecrypt == 1) {
+    if (encryptordecrypt == 0) {
         // Encryption flow
         encrypt_from_file_or_terminal();  // gets choiceA, key, and sentence
         encrypt_message();
     }
-    else if (encryptordecrypt == 2) {
+    else if (encryptordecrypt == 1) {
         // Decryption flow
         decryption();
     }
@@ -61,7 +61,7 @@ void encrypt_from_file_or_terminal(void)
     printf("\n--- Starting encryption flow ---\n");
 
     // --- INPUT SECTION ---
-    printf("Do you wish to encrypt from a directly in the terminal or from a file (1 for terminal and 0 for file) \n");
+    printf("Do you wish to encrypt directly in the terminal or from a file:\n0 = file 1 = terminal \n");
     scanf("%d", &choiceA);
     getchar(); // Consume newline
 
@@ -73,7 +73,7 @@ void generate_or_use_owned_key(void)
     char line[256];
 
     // --- KEY SECTION ---
-    printf("Do you wish to use an existing key pair or generate a new one? (1 for existing, 0 for new)\n");
+    printf("Do you wish to use an existing key pair or generate a new one:\n0 = new 1 = existing \n");
 
     if (!fgets(line, sizeof(line), stdin)) {
         printf("Error reading input.\n");
