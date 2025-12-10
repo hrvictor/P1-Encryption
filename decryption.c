@@ -7,8 +7,6 @@
 #define BLOCK_SIZE 2
 #define MAX_TEXT_LENGTH 256
 
-long long int modExp1(long long int base, long long int exp, long long int mod);
-
 //Prototypes
 void read_private_key(long long int* n, long long int* d);
 int read_encrypted_input(long long int* ciphertext, int max_blocks);
@@ -17,7 +15,7 @@ void print_message(char* message);
 void save_message(char* message);
 
 int decryption(void) {
-    //Variables to save keys and data
+    //Variabls to save keys and data
     long long int n = 0, d = 0;
     long long int ciphertext[MAX_TEXT_LENGTH];
     char decrypted_message[MAX_TEXT_LENGTH];
@@ -27,7 +25,7 @@ int decryption(void) {
     
 
     // Step 1: Load the private key (n, d)
-    // We will use 'd' and 'n' to decrypt: m = c^d mod n
+    // We will use 'd' og 'n' to decrypt: m = c^d mod n
     read_private_key(&n, &d);
     
     // Check if keys was read
@@ -109,7 +107,7 @@ void decrypt_data(long long int* ciphertext, int num_blocks, long long int n, lo
 
     int char_index = 0;
     for (int i = 0; i < num_blocks; i++) {
-        long long int m = modExp1(ciphertext[i], d, n);
+        long long int m = mod_Exp(ciphertext[i], d, n);
 
         // Unpack 2 characters from the integer (reverse order of packing)
         // m = char1 * 256 + char2
@@ -188,24 +186,3 @@ void save_message(char* message) {
 
 }
 
-//mod exp copied from generate_keys
-
-long long int modExp1(long long int base, long long int exp, long long int mod) {
-    long long int result = 1 % mod;
-
-    base = base % mod;
-
-    while (exp > 0) {
-        // If the current bit of exp is 1, multiply result by base (mod mod)
-        if (exp & 1) {
-            result = (result * base) % mod;
-        }
-
-        base = base * base % mod;
-
-        // Shift exponent right by 1 bit (divide by 2)
-        exp = exp / 2;
-    }
-
-    return result;
-}
