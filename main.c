@@ -7,24 +7,21 @@
 #include "generate_keys.c"
 
 
+
 #define buffer 250
 #define BLOCK_SIZE 2
 
 void generate_or_use_owned_key(void);
-void encryptfromfileorterminal(void);
-void choicea(void);
-void choiceb(void);
-long long modExp(long long base, long long exp, long long mod);
-
-// *** Add these prototypes ***
-int encryptordecrypt_(void);
+void encrypt_from_file_or_terminal(void);
+void choice_a(void);
+void choice_b(void);
+long long mod_Exp(long long base, long long exp, long long mod);
+int encrypt_or_decrypt(void);
 int encrypt_message(void);
-int decryption(void);
-int generate_keys(void);
 
 char sentence[buffer];
 char fname_a[buffer], fname_b[buffer];
-int choice_a, choice_b, choice_c;
+int choiceA, choiceB, choice_c;
 int encryptordecrypt;
 unsigned long long key;                  // RSA modulus n
 const long long public_exp = 0x10001LL;  // RSA public exponent e = 65537
@@ -36,16 +33,16 @@ int main(void) {
     scanf("%d", &encryptordecrypt);
 
     getchar(); // consume newline
-    encryptordecrypt_();
+    encrypt_or_decrypt();
     return 0;
 }
 
-int encryptordecrypt_()
+int encrypt_or_decrypt()
 {
 
     if (encryptordecrypt == 1) {
         // Encryption flow
-        encryptfromfileorterminal();  // gets choice_a, key, and sentence
+        encrypt_from_file_or_terminal();  // gets choiceA, key, and sentence
         encrypt_message();
     }
     else if (encryptordecrypt == 2) {
@@ -58,14 +55,14 @@ int encryptordecrypt_()
     return 1;
 }
 
-void encryptfromfileorterminal(void)
+void encrypt_from_file_or_terminal(void)
 {
 
     printf("\n--- Starting encryption flow ---\n");
 
     // --- INPUT SECTION ---
     printf("Do you wish to encrypt from a directly in the terminal or from a file (1 for terminal and 0 for file) \n");
-    scanf("%d", &choice_a);
+    scanf("%d", &choiceA);
     getchar(); // Consume newline
 
     generate_or_use_owned_key();
@@ -82,22 +79,22 @@ void generate_or_use_owned_key(void)
         printf("Error reading input.\n");
         exit(EXIT_FAILURE);
     }
-    if (sscanf(line, "%d", &choice_b) != 1) {
+    if (sscanf(line, "%d", &choiceB) != 1) {
         printf("Invalid input.\n");
         exit(EXIT_FAILURE);
     }
-    choiceb();
+    choice_b();
 }
 
-void choicea(void)
+void choice_a(void)
 {
-    if (choice_a == 1) {
+    if (choiceA == 1) {
         printf("Type the sentence that you wish to have encrypted:\n");
 
         fgets(sentence, buffer, stdin);
         sentence[strcspn(sentence, "\n")] = '\0';
     }
-    else if (choice_a == 0) {
+    else if (choiceA == 0) {
         printf("What is the name of the file that to encrypt from?\n");
         scanf("%s", fname_a);
 
@@ -119,9 +116,9 @@ void choicea(void)
 }
 
 
-void choiceb(void)
+void choice_b(void)
 {
-    if (choice_b == 1) {
+    if (choiceB == 1) {
         // Use existing key pair
         printf("\nWhat is the name of the text file containing the key pair (n)?\n");
 
@@ -162,9 +159,9 @@ void choiceb(void)
 
         printf("Here is your keypair: '%lld' (hex: %llx)\n",
             (long long)key, (unsigned long long)key);
-        choicea();
+        choice_a();
     }
-    else if (choice_b == 0) {
+    else if (choiceB == 0) {
         // Generate new key pair
         generate_keys();
         printf("type name of the public key txt file + .txt to start encryption.\n");
@@ -203,8 +200,8 @@ void choiceb(void)
             exit(EXIT_FAILURE);
         }
 
-        printf("Here is your keypair: '%lld' (hex: %llx)\n",(long long)key, (unsigned long long)key);
-        choicea();
+        printf("Here is your keypair: '%lld' (hex: %llx)\n", (long long)key, (unsigned long long)key);
+        choice_a();
     }
     else {
         printf("!You have given impossible instructions!\n");
@@ -240,7 +237,7 @@ int encrypt_message()
             m = m * 256 + ch;
         }
 
-        long long int c = modExp(m, public_exp, (long long)key);
+        long long int c = mod_Exp(m, public_exp, (long long)key);
         printf("%lld ", c);
         fprintf(f3, "%lld ", c); // Write space-separated blocks
     }
@@ -252,13 +249,22 @@ int encrypt_message()
 }
 
 // Helper function for RSA math to prevent overflow
-long long modExp(long long base, long long exp, long long mod) {
-    long long result = 1;
+long long mod_Exp(long long base, long long exp, long long mod) {
+    long long int result = 1 % mod;
+
     base = base % mod;
+
     while (exp > 0) {
-        if (exp % 2 == 1) result = (result * base) % mod;
-        exp = exp >> 1;
-        base = (base * base) % mod;
+        // If the current bit of exp is 1, multiply result by base (mod mod)
+        if (exp & 1) {
+            result = (result * base) % mod;
+        }
+
+        base = base * base % mod;
+
+        // Shift exponent right by 1 bit (divide by 2)
+        exp = exp / 2;
     }
+
     return result;
 }
