@@ -61,7 +61,7 @@ void encrypt_from_file_or_terminal(void)
     printf("\n--- Starting encryption flow ---\n");
 
     // --- INPUT SECTION ---
-    printf("Do you wish to encrypt directly in the terminal or from a file:\n0 = file 1 = terminal \n");
+    printf("Do you wish to encrypt directly in the terminal or from a file:\n0 = file\n 1 = terminal \n");
     scanf("%d", &choiceA);
     getchar(); // Consume newline
 
