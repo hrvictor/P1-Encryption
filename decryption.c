@@ -13,6 +13,7 @@ int read_encrypted_input(long long int* ciphertext, int max_blocks);
 void decrypt_data(long long int* ciphertext, int num_blocks, long long int n, long long int d, char* decrypted_message);
 void print_message(char* message);
 void save_message(char* message);
+long long mod_Exp1(long long base, long long exp, long long mod);
 
 int decryption(void) {
     //Variabls to save keys and data
@@ -107,7 +108,7 @@ void decrypt_data(long long int* ciphertext, int num_blocks, long long int n, lo
 
     int char_index = 0;
     for (int i = 0; i < num_blocks; i++) {
-        long long int m = mod_Exp(ciphertext[i], d, n);
+        long long int m = mod_Exp1(ciphertext[i], d, n);
 
         // Unpack 2 characters from the integer (reverse order of packing)
         // m = char1 * 256 + char2
@@ -185,4 +186,24 @@ void save_message(char* message) {
     }
 
 }
+//Copied from main
+// Helper function for RSA math to prevent overflow
+long long mod_Exp1(long long base, long long exp, long long mod) {
+    long long int result = 1 % mod;
 
+    base = base % mod;
+
+    while (exp > 0) {
+        // If the current bit of exp is 1, multiply result by base (mod mod)
+        if (exp & 1) {
+            result = (result * base) % mod;
+        }
+
+        base = base * base % mod;
+
+        // Shift exponent right by 1 bit (divide by 2)
+        exp = exp / 2;
+    }
+
+    return result;
+}
