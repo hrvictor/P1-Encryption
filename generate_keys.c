@@ -7,12 +7,11 @@
 
 
 
-long long int isPrime(long long int n);
+long long int is_prime (long long int n);
 long long int phi(long long int n);
 long long int gcd(long long int num1, long long int num2);
-long long int modInverse(long long int a, long long int m);
+long long int mod_inverse(long long int a, long long int m);
 long long int extended_gcd(long long int a, long long int b, long long int* x, long long int* y);
-long long int modInverse(long long int a, long long int m);
 
 int generate_keys(void) {
     srand((unsigned int)time(NULL));
@@ -23,7 +22,7 @@ int generate_keys(void) {
 
     while (primeindex < 2) {
         long long int n = rand();      // random number
-        if (isPrime(n)) {
+        if (is_prime(n)) {
             if (primeindex == 0) {
                 p = n;
             }
@@ -40,7 +39,7 @@ int generate_keys(void) {
     long long n = p * q;
     long long phi_n = phi(n);
     // Compute d
-    long long int d = modInverse(E, phi_n);
+    long long int d = mod_inverse(E, phi_n);
     if (d == -1) {
         printf("Error: modular inverse does not exist\n");
         return 1;
@@ -68,11 +67,11 @@ int generate_keys(void) {
     fprintf(fptr, "private key: (n=%llx, d=%llx)\n", n, d);
     fclose(fptr);
 
-    printf("This is the keypair saved to your files public.txt and private.txt, in hexadecimals:\npublic key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)\n", n, E, n, d);
+    printf("This is the keypair saved to your files public.txt and private.txt, in hexadeximals:\npublic key key: (n=%llx, e=%llx)\nprivate key: (n=%llx, d=%llx)\n", n, E, n, d);
 
     return 0;
 }
-long long int isPrime(long long int n) {
+long long int is_prime(long long int n) {
     if (n <= 1) return 0;
     if (n == 2) return 1;
     if (n % 2 == 0) return 0;
@@ -104,13 +103,14 @@ long long int phi(long long int n) {
     }
     return result;
 }
-long long int gcd(long long int num1, long long int num2) {
-    // Base case: if the second number is 0, the first number is the GCD
-    if (num2 == 0) {
-        return num1;
+long long int gcd(long long int num1, long long int num2)
+{
+    while (num2 != 0) {
+        long long int temp = num1 % num2;
+        num1 = num2;
+        num2 = temp;
     }
-    // Recursive call with the second number and the remainder of num1 divided by num2
-    return gcd(num2, num1 % num2);
+    return num1;
 }
 
 
@@ -145,12 +145,12 @@ long long int extended_gcd(long long int a, long long int b,long long int* x, lo
     *y = y0;
     return a;   // a is the gcd
 }
-// --------------------- modInverse ---------------------
+// --------------------- mod_inverse ---------------------
 // Computes the modular inverse of a modulo m.
 // That is, finds x such that: a*x ≡ 1 (mod m).
 // Uses the extended Euclidean algorithm.
 // Returns the modular inverse if it exists, otherwise returns -1.
-long long int modInverse(long long int a, long long int m) {
+long long int mod_inverse(long long int a, long long int m) {
     long long int x, y;
     long long int g = extended_gcd(a, m, &x, &y);
 
@@ -164,3 +164,4 @@ long long int modInverse(long long int a, long long int m) {
     if (res < 0) res += m;
     return res;
 }
+
