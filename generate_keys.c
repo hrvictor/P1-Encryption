@@ -1,4 +1,4 @@
-#include <stdlib.h>
+﻿#include <stdlib.h>
 #include <time.h>
 #include <math.h>
 #include <stdio.h>
@@ -21,7 +21,7 @@ int generate_keys(void) {
     int primeindex = 0;
 
     while (primeindex < 2) {
-        long long int n = rand();      // random number
+        long long int n = rand()%100000;      // random number
         if (is_prime(n)) {
             if (primeindex == 0) {
                 p = n;
