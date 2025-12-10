@@ -61,7 +61,7 @@ void encrypt_from_file_or_terminal(void)
     printf("\n--- Starting encryption flow ---\n");
 
     // --- INPUT SECTION ---
-    printf("Do you wish to encrypt directly in the terminal or from a file:\n0 = file\n 1 = terminal \n");
+    printf("Do you wish to encrypt directly in the terminal or from a file:\n0 = file\n1 = terminal \n");
     scanf("%d", &choiceA);
     getchar(); // Consume newline
 
@@ -73,7 +73,7 @@ void generate_or_use_owned_key(void)
     char line[256];
 
     // --- KEY SECTION ---
-    printf("Do you wish to use an existing key pair or generate a new one:\n0 = new 1 = existing \n");
+    printf("\nDo you wish to use an existing key pair or generate a new one:\n0 = new\n1 = existing \n");
 
     if (!fgets(line, sizeof(line), stdin)) {
         printf("Error reading input.\n");
@@ -120,7 +120,7 @@ void choice_b(void)
 {
     if (choiceB == 1) {
         // Use existing key pair
-        printf("\nWhat is the name of the text file containing the key pair (n)?\n");
+        printf("\nWhat is the name of the text file containing the public key pair (n)?\n");
 
         if (!fgets(fname_b, sizeof(fname_b), stdin)) {
             printf("Error reading filename.\n");
